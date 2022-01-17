@@ -11,12 +11,12 @@ hash(cl_context ctx,
      cl_command_queue cq,
      cl_kernel krnl,
      const cl_uchar* input,
-     cl_uint* const output)
+     cl_uchar* const output)
 {
   cl_int status;
 
   const size_t i_size = 64 * sizeof(cl_uchar);
-  const size_t o_size = 8 * sizeof(cl_uint);
+  const size_t o_size = 32 * sizeof(cl_uchar);
 
   // input is supplied to kernel by this buffer
   cl_mem i_buf = clCreateBuffer(ctx, CL_MEM_READ_ONLY, i_size, NULL, &status);

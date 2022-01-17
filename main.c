@@ -40,7 +40,7 @@ main(int argc, char** argv)
   show_message_and_exit(status, "failed to create command queue !\n");
 
   cl_program prgm;
-  status = build_kernel(ctx, dev_id, "kernel.cl", &prgm);
+  status = build_kernel(ctx, dev_id, "kernel.cl", ocl_kernel_test_flag, &prgm);
   if (status != CL_SUCCESS) {
     printf("failed to compile kernel !\n");
 

@@ -10,6 +10,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+const char ocl_kernel_test_flag[] =
+  "-cl-std=CL2.0 -w -DLE_BYTES_TO_WORDS -DWORDS_TO_LE_BYTES";
+
 #define check_for_error_and_return(status)                                     \
   if (status != CL_SUCCESS) {                                                  \
     return status;                                                             \
@@ -74,7 +77,8 @@ find_device(cl_device_id* device_id)
 cl_int
 build_kernel(cl_context ctx,
              cl_device_id dev_id,
-             char* kernel,
+             const char* kernel,
+             const char* flags,
              cl_program* prgm)
 {
   cl_int status;
@@ -97,7 +101,7 @@ build_kernel(cl_context ctx,
   *prgm = prgm_;
   free(kernel_src);
 
-  status = clBuildProgram(*prgm, 1, &dev_id, "-cl-std=CL2.0 -w", NULL, NULL);
+  status = clBuildProgram(*prgm, 1, &dev_id, flags, NULL, NULL);
   if (status != CL_SUCCESS) {
     return status;
   }

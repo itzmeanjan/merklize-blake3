@@ -53,6 +53,7 @@ test_hash_1(cl_context ctx, cl_command_queue cq, cl_kernel hash_krnl)
 
   // deallocate memory
   free(in);
+  free(i_bytes);
   free(out);
 
   return status;

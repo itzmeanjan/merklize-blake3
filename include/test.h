@@ -13,7 +13,9 @@ test_hash_0(cl_context ctx, cl_command_queue cq, cl_kernel hash_krnl)
   cl_int status;
 
   cl_uchar* in = (cl_uchar*)malloc(sizeof(cl_uchar) * 64);
+  check_mem_alloc(in);
   cl_uchar* out = (cl_uchar*)malloc(sizeof(cl_uchar) * 32);
+  check_mem_alloc(out);
 
   static_input_0(in, 64);
   status = hash_0(ctx, cq, hash_krnl, in, out);
@@ -39,8 +41,11 @@ test_hash_1(cl_context ctx, cl_command_queue cq, cl_kernel hash_krnl)
   cl_int status;
 
   cl_uchar* i_bytes = (cl_uchar*)malloc(sizeof(cl_uchar) * 64);
+  check_mem_alloc(i_bytes);
   cl_uint* in = (cl_uint*)malloc(sizeof(cl_uint) * 16);
+  check_mem_alloc(in);
   cl_uint* out = (cl_uint*)malloc(sizeof(cl_uint) * 8);
+  check_mem_alloc(out);
 
   static_input_0(i_bytes, 64);
   words_from_le_bytes(i_bytes, 64, in, 16);

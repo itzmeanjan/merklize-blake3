@@ -23,6 +23,12 @@ const char ocl_kernel_flag_1[] = "-cl-std=CL2.0 -w -DEXPOSE_BLAKE3_HASH";
     continue;                                                                  \
   }
 
+#define check_mem_alloc(ptr)                                                   \
+  if (ptr == NULL) {                                                           \
+    printf("failed to allocate requested memory on heap !\n");                 \
+    exit(EXIT_FAILURE);                                                        \
+  }
+
 cl_int
 find_device(cl_device_id* device_id)
 {
@@ -41,6 +47,8 @@ find_device(cl_device_id* device_id)
 
   cl_platform_id* platforms =
     (cl_platform_id*)malloc(sizeof(cl_platform_id) * num_platforms);
+  check_mem_alloc(platforms);
+
   status = clGetPlatformIDs(num_platforms, platforms, NULL);
   check_for_error_and_return(status);
 
@@ -58,6 +66,8 @@ find_device(cl_device_id* device_id)
 
     cl_device_id* devices =
       (cl_device_id*)malloc(sizeof(cl_device_id) * num_devices);
+    check_mem_alloc(devices);
+
     status =
       clGetDeviceIDs(*(platforms + i), dev_type, num_devices, devices, NULL);
     if (status != CL_SUCCESS) {
@@ -90,6 +100,8 @@ build_kernel(cl_context ctx,
   fseek(fd, 0, SEEK_SET);
 
   char* kernel_src = (char*)malloc(sizeof(char) * size);
+  check_mem_alloc(kernel_src);
+
   size_t n = fread(kernel_src, sizeof(char), size, fd);
 
   assert(n == size);
@@ -123,6 +135,8 @@ show_build_log(cl_device_id dev_id, cl_program prgm)
   }
 
   void* log = malloc(log_size);
+  check_mem_alloc(log);
+
   status = clGetProgramBuildInfo(
     prgm, dev_id, CL_PROGRAM_BUILD_LOG, log_size, log, NULL);
   if (status != CL_SUCCESS) {

@@ -23,6 +23,8 @@ main(int argc, char** argv)
   show_message_and_exit(status, "failed to get device name !\n");
 
   void* dev_name = malloc(val_size);
+  check_mem_alloc(dev_name);
+
   status = clGetDeviceInfo(dev_id, CL_DEVICE_NAME, val_size, dev_name, NULL);
   show_message_and_exit(status, "failed to get device name !\n");
 

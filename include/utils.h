@@ -100,3 +100,37 @@ build_kernel(cl_context ctx,
 
   return CL_SUCCESS;
 }
+
+cl_int
+show_build_log(cl_device_id dev_id, cl_program prgm)
+{
+  cl_int status;
+
+  size_t log_size;
+  status = clGetProgramBuildInfo(
+    prgm, dev_id, CL_PROGRAM_BUILD_LOG, 0, NULL, &log_size);
+  if (status != CL_SUCCESS) {
+    return status;
+  }
+
+  void* log = malloc(log_size);
+  status = clGetProgramBuildInfo(
+    prgm, dev_id, CL_PROGRAM_BUILD_LOG, log_size, log, NULL);
+  if (status != CL_SUCCESS) {
+    free(log);
+    return status;
+  }
+
+  printf("\nkernel build log:\n%s\n\n", (char*)log);
+  free(log);
+
+  return CL_SUCCESS;
+}
+
+void
+random_input(cl_uchar* in, size_t count)
+{
+  for (size_t i = 0; i < count; i++) {
+    *(in + i) = (cl_uchar)rand();
+  }
+}

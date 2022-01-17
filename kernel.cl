@@ -14,7 +14,7 @@ constant uint PARENT = 1 << 2;
 constant uint ROOT = 1 << 3;
 
 void
-permute(global uint* const msg)
+permute(private uint* const msg)
 {
 private
   uint permuted[16];
@@ -31,7 +31,7 @@ private
 }
 
 void
-round(private uint4* const state, global const uint* msg)
+round(private uint4* const state, private const uint* msg)
 {
   uint4 mx = (uint4)(*(msg + 0), *(msg + 2), *(msg + 4), *(msg + 6));
   uint4 my = (uint4)(*(msg + 1), *(msg + 3), *(msg + 5), *(msg + 7));
@@ -93,7 +93,7 @@ round(private uint4* const state, global const uint* msg)
 }
 
 void
-compress(global uint* const msg,
+compress(private uint* const msg,
          ulong counter,
          uint block_len,
          uint flags,
@@ -142,4 +142,16 @@ private
   // writing output chaining value
   vstore4(state[0], 0, out_cv);
   vstore4(state[1], 1, out_cv);
+}
+
+void
+words_from_le_bytes(global const uchar* input, private uint* const msg_words)
+{
+#pragma unroll 8
+  for (size_t i = 0; i < 16; i++) {
+    *(msg_words + i) = ((uint) * (input + i * 4 + 3) << 24) |
+                       ((uint) * (input + i * 4 + 2) << 16) |
+                       ((uint) * (input + i * 4 + 1) << 8) |
+                       ((uint) * (input + i * 4 + 0) << 0);
+  }
 }

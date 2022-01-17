@@ -63,6 +63,8 @@ main(int argc, char** argv)
   }
 
   // skip showing build log again
+  status = show_build_log(dev_id, prgm_1);
+  show_message_and_exit(status, "failed to obtain kernel build log !\n");
 
   cl_kernel krnl_0 = clCreateKernel(prgm_0, "hash", &status);
   show_message_and_exit(status, "failed to create `hash` kernel !\n");

@@ -231,3 +231,21 @@ private
   compress(input, 0, BLOCK_LEN, CHUNK_START | CHUNK_END | ROOT, output);
 #endif
 }
+
+#if !(defined(LE_BYTES_TO_WORDS) && defined(WORDS_TO_LE_BYTES))
+
+kernel void
+merklize(global uint* const restrict input,
+         constant size_t* restrict i_offset,
+         global uint* const restrict output,
+         constant size_t* restrict o_offset)
+{
+private
+  const size_t idx = get_global_id(0);
+
+  // idx << 4 => because input being hashed is 64 -bytes wide
+  // idx << 3 => because output of blake3 hash is 32 -bytes wide
+  hash(input + *i_offset + (idx << 4), output + *o_offset + (idx << 3));
+}
+
+#endif

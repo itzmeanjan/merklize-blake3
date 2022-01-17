@@ -155,3 +155,13 @@ words_from_le_bytes(global const uchar* input, private uint* const msg_words)
                        ((uint) * (input + i * 4 + 0) << 0);
   }
 }
+
+kernel void
+hash(global const uchar* input, global uint* const output)
+{
+private
+  uint msg_words[16];
+
+  words_from_le_bytes(input, msg_words);
+  compress(msg_words, 0, BLOCK_LEN, CHUNK_START | CHUNK_END | ROOT, output);
+}

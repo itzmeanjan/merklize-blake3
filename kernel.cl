@@ -91,3 +91,55 @@ round(private uint4* const state, global const uint* msg)
     *(state + 3) = tmp.yzwx;
   }
 }
+
+void
+compress(global uint* const msg,
+         ulong counter,
+         uint block_len,
+         uint flags,
+         global uint* const out_cv)
+{
+private
+  uint4 state[4] = { (uint4)(IV[0], IV[1], IV[2], IV[3]),
+                     (uint4)(IV[4], IV[5], IV[6], IV[7]),
+                     (uint4)(IV[0], IV[1], IV[2], IV[3]),
+                     (uint4)((uint)(counter & 0xffffffff),
+                             (uint)(counter >> 32),
+                             block_len,
+                             flags) };
+
+  // round 1
+  round(state, msg);
+  permute(msg);
+
+  // round 2
+  round(state, msg);
+  permute(msg);
+
+  // round 3
+  round(state, msg);
+  permute(msg);
+
+  // round 4
+  round(state, msg);
+  permute(msg);
+
+  // round 5
+  round(state, msg);
+  permute(msg);
+
+  // round 6
+  round(state, msg);
+  permute(msg);
+
+  // round 7
+  round(state, msg);
+
+  // preparing 32 -bytes output chaining value
+  state[0] ^= state[2];
+  state[1] ^= state[3];
+
+  // writing output chaining value
+  vstore4(state[0], 0, out_cv);
+  vstore4(state[1], 1, out_cv);
+}

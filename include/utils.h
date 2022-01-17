@@ -138,3 +138,51 @@ random_input(cl_uchar* in, size_t count)
     *(in + i) = (cl_uchar)rand();
   }
 }
+
+// compile time known input pattern, used for testing
+void
+static_input(cl_uchar* in, size_t count)
+{
+#pragma unroll
+  for (size_t i = 0; i < count; i++) {
+    *(in + i) = (cl_uchar)(i % 256);
+  }
+}
+
+void
+words_from_le_bytes(const cl_uchar* input,
+                    size_t i_size,
+                    cl_uint* const msg_words,
+                    size_t m_cnt)
+{
+  // because each message word is of 4 -bytes width
+  assert(i_size == m_cnt * 4);
+
+  for (size_t i = 0; i < m_cnt; i++) {
+    const cl_uchar* i_start = input + i * 4;
+
+    *(msg_words + i) =
+      ((cl_uint) * (i_start + 3) << 24) | ((cl_uint) * (i_start + 2) << 16) |
+      ((cl_uint) * (i_start + 1) << 8) | ((cl_uint) * (i_start + 0) << 0);
+  }
+}
+
+void
+words_to_le_bytes(const cl_uint* msg_words,
+                  size_t m_cnt,
+                  cl_uchar* const output,
+                  size_t o_size)
+{
+  // because each message word is of 4 -bytes width
+  assert(o_size == m_cnt * 4);
+
+  for (size_t i = 0; i < m_cnt; i++) {
+    const cl_uint num = *(msg_words + i);
+    cl_uchar* out = output + i * 4;
+
+    *(out + 0) = (cl_uchar)(num >> 0) & 0xff;
+    *(out + 1) = (cl_uchar)(num >> 8) & 0xff;
+    *(out + 2) = (cl_uchar)(num >> 16) & 0xff;
+    *(out + 3) = (cl_uchar)(num >> 24) & 0xff;
+  }
+}

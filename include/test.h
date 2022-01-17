@@ -23,7 +23,7 @@ test_hash(cl_context ctx, cl_command_queue cq, cl_kernel hash_krnl)
   status = hash(ctx, cq, hash_krnl, in, out);
 
   // converting digest into little endian byte array
-  words_to_le_bytes(out, o_bytes);
+  words_to_le_bytes(out, 8, o_bytes, 32);
 
   for (size_t i = 0; i < 32; i++) {
     assert(*(o_bytes + i) == digest[i]);

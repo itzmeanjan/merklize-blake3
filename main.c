@@ -1,7 +1,7 @@
 // Adapted from
 // https://github.com/itzmeanjan/vectorized-rescue-prime/blob/614500d/main.c
 
-#include "utils.h"
+#include "test.h"
 
 #define show_message_and_exit(status, msg)                                     \
   if (status != CL_SUCCESS) {                                                  \
@@ -53,6 +53,9 @@ main(int argc, char** argv)
 
   cl_kernel krnl_0 = clCreateKernel(prgm, "hash", &status);
   show_message_and_exit(status, "failed to create `hash` kernel !\n");
+
+  status = test_hash(ctx, c_queue, krnl_0);
+  printf("passed blake3 hash test !\n");
 
   clReleaseKernel(krnl_0);
   clReleaseProgram(prgm);

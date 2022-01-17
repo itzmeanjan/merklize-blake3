@@ -38,10 +38,12 @@ test_hash_1(cl_context ctx, cl_command_queue cq, cl_kernel hash_krnl)
 
   cl_int status;
 
+  cl_uchar* i_bytes = (cl_uchar*)malloc(sizeof(cl_uchar) * 64);
   cl_uint* in = (cl_uint*)malloc(sizeof(cl_uint) * 16);
   cl_uint* out = (cl_uint*)malloc(sizeof(cl_uint) * 8);
 
-  static_input_1(in, 16);
+  static_input_0(i_bytes, 64);
+  words_from_le_bytes(i_bytes, 64, in, 16);
   status = hash_1(ctx, cq, hash_krnl, in, out);
 
   // compare result !

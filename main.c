@@ -39,26 +39,44 @@ main(int argc, char** argv)
     clCreateCommandQueueWithProperties(ctx, dev_id, props, &status);
   show_message_and_exit(status, "failed to create command queue !\n");
 
-  cl_program prgm;
-  status = build_kernel(ctx, dev_id, "kernel.cl", ocl_kernel_test_flag, &prgm);
+  cl_program prgm_0;
+  status = build_kernel(ctx, dev_id, "kernel.cl", ocl_kernel_flag_0, &prgm_0);
   if (status != CL_SUCCESS) {
     printf("failed to compile kernel !\n");
 
-    show_build_log(dev_id, prgm);
+    show_build_log(dev_id, prgm_0);
     return EXIT_FAILURE;
   }
 
-  status = show_build_log(dev_id, prgm);
+  status = show_build_log(dev_id, prgm_0);
   show_message_and_exit(status, "failed to obtain kernel build log !\n");
 
-  cl_kernel krnl_0 = clCreateKernel(prgm, "hash", &status);
+  cl_program prgm_1;
+  status = build_kernel(ctx, dev_id, "kernel.cl", ocl_kernel_flag_1, &prgm_1);
+  if (status != CL_SUCCESS) {
+    printf("failed to compile kernel !\n");
+
+    show_build_log(dev_id, prgm_1);
+    return EXIT_FAILURE;
+  }
+
+  // skip showing build log again
+
+  cl_kernel krnl_0 = clCreateKernel(prgm_0, "hash", &status);
   show_message_and_exit(status, "failed to create `hash` kernel !\n");
 
-  status = test_hash(ctx, c_queue, krnl_0);
+  cl_kernel krnl_1 = clCreateKernel(prgm_1, "hash", &status);
+  show_message_and_exit(status, "failed to create `hash` kernel !\n");
+
+  status = test_hash_0(ctx, c_queue, krnl_0);
+  status = test_hash_1(ctx, c_queue, krnl_1);
+
   printf("passed blake3 hash test !\n");
 
   clReleaseKernel(krnl_0);
-  clReleaseProgram(prgm);
+  clReleaseKernel(krnl_1);
+  clReleaseProgram(prgm_0);
+  clReleaseProgram(prgm_1);
   clReleaseCommandQueue(c_queue);
   clReleaseContext(ctx);
   clReleaseDevice(dev_id);

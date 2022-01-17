@@ -10,8 +10,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-const char ocl_kernel_test_flag[] =
-  "-cl-std=CL2.0 -w -DLE_BYTES_TO_WORDS -DWORDS_TO_LE_BYTES";
+const char ocl_kernel_flag_0[] = "-cl-std=CL2.0 -w\
+  -DLE_BYTES_TO_WORDS -DWORDS_TO_LE_BYTES -DEXPOSE_BLAKE3_HASH";
+const char ocl_kernel_flag_1[] = "-cl-std=CL2.0 -w -DEXPOSE_BLAKE3_HASH";
 
 #define check_for_error_and_return(status)                                     \
   if (status != CL_SUCCESS) {                                                  \
@@ -145,11 +146,29 @@ random_input(cl_uchar* in, size_t count)
 
 // compile time known input pattern, used for testing
 void
-static_input(cl_uchar* in, size_t count)
+static_input_0(cl_uchar* const in, size_t count)
 {
 #pragma unroll
   for (size_t i = 0; i < count; i++) {
     *(in + i) = (cl_uchar)(i % 256);
+  }
+}
+
+// compile time known input pattern, used for testing
+//
+// note this produces same input byte array as `static_input_0`
+// written above, with just an exception of 4 consequtive little
+// endian bytes being interpreted as `cl_uint` --- 32 -bit unsigned
+// integer
+void
+static_input_1(cl_uint* const in, size_t count)
+{
+#pragma unroll
+  for (size_t i = 0; i < count; i++) {
+    size_t i_ = i * 4;
+
+    *(in + i) = ((cl_uint)(i_ + 3) << 24) | ((cl_uint)(i_ + 2) << 16) |
+                ((cl_uint)(i_ + 1) << 8) | ((cl_uint)(i_ + 0) << 0);
   }
 }
 

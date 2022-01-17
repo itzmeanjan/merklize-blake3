@@ -16,6 +16,7 @@ $(PROG): main.c include/*.h
 
 kernel:
 	$(CLCXX) $(CLCXX_FLAGS) -c -o /dev/null kernel.cl
+	$(CLCXX) $(CLCXX_FLAGS) -DLE_BYTES_TO_WORDS -DWORDS_TO_LE_BYTES -DEXPOSE_BLAKE3_HASH -c -o /dev/null kernel.cl
 
 format:
 	find . -name '*.c' -o -name '*.h' -o -name '*.cl' | xargs clang-format -i -style=Mozilla

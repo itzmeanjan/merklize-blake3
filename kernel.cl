@@ -200,18 +200,22 @@ words_to_le_bytes(private const uint* msg_words, global uchar* const output)
   }
 }
 
-kernel void
-hash(
+#if defined(EXPOSE_BLAKE3_HASH)
+kernel
+#endif
+
+  void
+  hash(
 
 #if defined(LE_BYTES_TO_WORDS) && defined(WORDS_TO_LE_BYTES)
-  global const uchar* input,
-  global uchar* const output
+    global const uchar* input,
+    global uchar* const output
 #else
   global uint* const input,
   global uint* const output
 #endif
 
-)
+  )
 {
 
 #if defined(LE_BYTES_TO_WORDS) && defined(WORDS_TO_LE_BYTES)

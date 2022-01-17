@@ -14,7 +14,7 @@ constant uint PARENT = 1 << 2;
 constant uint ROOT = 1 << 3;
 
 void
-permute(uint* const msg)
+permute(global uint* const msg)
 {
 private
   uint permuted[16];
@@ -27,5 +27,67 @@ private
 #pragma unroll 16
   for (size_t i = 0; i < 16; i++) {
     *(msg + i) = permuted[i];
+  }
+}
+
+void
+round(private uint4* const state, global const uint* msg)
+{
+  uint4 mx = (uint4)(*(msg + 0), *(msg + 2), *(msg + 4), *(msg + 6));
+  uint4 my = (uint4)(*(msg + 1), *(msg + 3), *(msg + 5), *(msg + 7));
+  uint4 mz = (uint4)(*(msg + 8), *(msg + 10), *(msg + 12), *(msg + 14));
+  uint4 mw = (uint4)(*(msg + 9), *(msg + 11), *(msg + 13), *(msg + 15));
+
+  const uint4 rrot_16 = (uint4)(16);
+  const uint4 rrot_12 = (uint4)(20);
+  const uint4 rrot_8 = (uint4)(24);
+  const uint4 rrot_7 = (uint4)(25);
+
+  // column-wise mixing
+  *(state + 0) = *(state + 0) + *(state + 1) + mx;
+  *(state + 3) = rotate(*(state + 3) ^ *(state + 0), rrot_16);
+  *(state + 2) = *(state + 2) + *(state + 3);
+  *(state + 1) = rotate(*(state + 1) ^ *(state + 2), rrot_12);
+  *(state + 0) = *(state + 0) + *(state + 1) + my;
+  *(state + 3) = rotate(*(state + 3) ^ *(state + 0), rrot_8);
+  *(state + 2) = *(state + 2) + *(state + 3);
+  *(state + 1) = rotate(*(state + 1) ^ *(state + 2), rrot_7);
+
+  // state matrix diagonalization
+  {
+    uint4 tmp = *(state + 1);
+    *(state + 1) = tmp.yzwx;
+  }
+  {
+    uint4 tmp = *(state + 2);
+    *(state + 2) = tmp.zwxy;
+  }
+  {
+    uint4 tmp = *(state + 3);
+    *(state + 3) = tmp.wxyz;
+  }
+
+  // row-wise mixing
+  *(state + 0) = *(state + 0) + *(state + 1) + mz;
+  *(state + 3) = rotate(*(state + 3) ^ *(state + 0), rrot_16);
+  *(state + 2) = *(state + 2) + *(state + 3);
+  *(state + 1) = rotate(*(state + 1) ^ *(state + 2), rrot_12);
+  *(state + 0) = *(state + 0) + *(state + 1) + mw;
+  *(state + 3) = rotate(*(state + 3) ^ *(state + 0), rrot_8);
+  *(state + 2) = *(state + 2) + *(state + 3);
+  *(state + 1) = rotate(*(state + 1) ^ *(state + 2), rrot_7);
+
+  // state matrix un-diagonalization
+  {
+    uint4 tmp = *(state + 1);
+    *(state + 1) = tmp.wxyz;
+  }
+  {
+    uint4 tmp = *(state + 2);
+    *(state + 2) = tmp.zwxy;
+  }
+  {
+    uint4 tmp = *(state + 3);
+    *(state + 3) = tmp.yzwx;
   }
 }

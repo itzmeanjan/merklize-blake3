@@ -1,13 +1,15 @@
-CXX = gcc
+# for host code written in c
+CXX = clang
 CXX_FLAGS = -std=c17 -Wall
 INCLUDE_DIR = -I./include
 LINK_FLAGS = -lOpenCL
 PROG = run
 
+# for kernel written in opencl c
 CLCXX = clang
 CLCXX_FLAGS = -Wall -cl-std=CL2.0 -target spir64 -O0 -emit-llvm
 
-all: $(PROG)
+all: kernel $(PROG)
 
 $(PROG): main.c include/*.h
 	$(CXX) $(CXX_FLAGS) $(INCLUDE_DIR) $< $(LINK_FLAGS) -o $@

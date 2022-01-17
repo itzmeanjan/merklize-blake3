@@ -1,4 +1,8 @@
 #pragma once
+
+// Taken from
+// https://github.com/itzmeanjan/vectorized-rescue-prime/blob/614500d/utils.c
+
 #define CL_TARGET_OPENCL_VERSION 220
 #include <CL/cl.h>
 #include <assert.h>
@@ -93,7 +97,7 @@ build_kernel(cl_context ctx,
   *prgm = prgm_;
   free(kernel_src);
 
-  status = clBuildProgram(*prgm, 1, &dev_id, "-cl-std=CL2.0 -Wall", NULL, NULL);
+  status = clBuildProgram(*prgm, 1, &dev_id, "-cl-std=CL2.0 -w", NULL, NULL);
   if (status != CL_SUCCESS) {
     return status;
   }

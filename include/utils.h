@@ -1,6 +1,7 @@
 #pragma once
 #define CL_TARGET_OPENCL_VERSION 220
 #include <CL/cl.h>
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -64,4 +65,38 @@ find_device(cl_device_id* device_id)
   free(platforms);
 
   return CL_DEVICE_NOT_FOUND;
+}
+
+cl_int
+build_kernel(cl_context ctx,
+             cl_device_id dev_id,
+             char* kernel,
+             cl_program* prgm)
+{
+  cl_int status;
+
+  FILE* fd = fopen(kernel, "r");
+  fseek(fd, 0, SEEK_END);
+  const size_t size = ftell(fd);
+  fseek(fd, 0, SEEK_SET);
+
+  char* kernel_src = (char*)malloc(sizeof(char) * size);
+  size_t n = fread(kernel_src, sizeof(char), size, fd);
+
+  assert(n == size);
+  fclose(fd);
+
+  cl_program prgm_ = clCreateProgramWithSource(
+    ctx, 1, (const char**)&kernel_src, &size, &status);
+  check_for_error_and_return(status);
+
+  *prgm = prgm_;
+  free(kernel_src);
+
+  status = clBuildProgram(*prgm, 1, &dev_id, "-cl-std=CL2.0 -Wall", NULL, NULL);
+  if (status != CL_SUCCESS) {
+    return status;
+  }
+
+  return CL_SUCCESS;
 }

@@ -14,7 +14,15 @@ constant uint PARENT = 1 << 2;
 constant uint ROOT = 1 << 3;
 
 void
-permute(private uint* const msg)
+permute(
+
+#if defined(LE_BYTES_TO_WORDS) && defined(WORDS_TO_LE_BYTES)
+  private uint* const msg
+#else
+  global uint* const msg
+#endif
+
+)
 {
 private
   uint permuted[16];
@@ -31,7 +39,15 @@ private
 }
 
 void
-round(private uint4* const state, private const uint* msg)
+round(private uint4* const state,
+
+#if defined(LE_BYTES_TO_WORDS) && defined(WORDS_TO_LE_BYTES)
+      private const uint* msg
+#else
+      global const uint* msg
+#endif
+
+)
 {
   uint4 mx = (uint4)(*(msg + 0), *(msg + 2), *(msg + 4), *(msg + 6));
   uint4 my = (uint4)(*(msg + 1), *(msg + 3), *(msg + 5), *(msg + 7));
@@ -93,11 +109,25 @@ round(private uint4* const state, private const uint* msg)
 }
 
 void
-compress(private uint* const msg,
-         ulong counter,
-         uint block_len,
-         uint flags,
-         global uint* const out_cv)
+compress(
+
+#if defined(LE_BYTES_TO_WORDS) && defined(WORDS_TO_LE_BYTES)
+  private uint* const msg,
+#else
+  global uint* const msg,
+#endif
+
+  ulong counter,
+  uint block_len,
+  uint flags,
+
+#if defined(LE_BYTES_TO_WORDS) && defined(WORDS_TO_LE_BYTES)
+  private uint* const out_cv
+#else
+  global uint* const out_cv
+#endif
+
+)
 {
 private
   uint4 state[4] = { (uint4)(IV[0], IV[1], IV[2], IV[3]),
@@ -156,12 +186,44 @@ words_from_le_bytes(global const uchar* input, private uint* const msg_words)
   }
 }
 
-kernel void
-hash(global const uchar* input, global uint* const output)
+void
+words_to_le_bytes(private const uint* msg_words, global uchar* const output)
 {
+#pragma unroll 8
+  for (size_t i = 0; i < 8; i++) {
+    const uint num = *(msg_words + i);
+
+    *(output + i * 4 + 0) = (uchar)(num >> 0) & 0xff;
+    *(output + i * 4 + 1) = (uchar)(num >> 8) & 0xff;
+    *(output + i * 4 + 2) = (uchar)(num >> 16) & 0xff;
+    *(output + i * 4 + 3) = (uchar)(num >> 24) & 0xff;
+  }
+}
+
+kernel void
+hash(
+
+#if defined(LE_BYTES_TO_WORDS) && defined(WORDS_TO_LE_BYTES)
+  global const uchar* input,
+  global uchar* const output
+#else
+  global uint* const input,
+  global uint* const output
+#endif
+
+)
+{
+
+#if defined(LE_BYTES_TO_WORDS) && defined(WORDS_TO_LE_BYTES)
 private
   uint msg_words[16];
+private
+  uint out_cv[8];
 
   words_from_le_bytes(input, msg_words);
-  compress(msg_words, 0, BLOCK_LEN, CHUNK_START | CHUNK_END | ROOT, output);
+  compress(msg_words, 0, BLOCK_LEN, CHUNK_START | CHUNK_END | ROOT, out_cv);
+  words_to_le_bytes(out_cv, output);
+#else
+  compress(input, 0, BLOCK_LEN, CHUNK_START | CHUNK_END | ROOT, output);
+#endif
 }

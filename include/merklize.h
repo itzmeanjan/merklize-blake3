@@ -10,7 +10,8 @@ merklize(cl_context ctx,
          size_t i_size, // in bytes
          size_t leaf_count,
          cl_uchar* const output,
-         size_t wg_size)
+         size_t wg_size,
+         cl_ulong* const ts)
 {
   // because each leaf node Merkle Tree will be of width 32 -bytes
   assert(leaf_count << 5 == i_size);
@@ -173,6 +174,19 @@ merklize(cl_context ctx,
   // byte array
   words_to_le_bytes(itmd_buf_ptr, 8, output, 32);
 
+  // sum of execution time of kernels with
+  // nanosecond level of granularity
+  cl_ulong ts_ = 0;
+
+  for (size_t i = 0; i < rounds + 1; i++) {
+    cl_ulong tmp = 0;
+    status = time_event(*(round_evts + i), &tmp);
+
+    ts_ += tmp;
+  }
+
+  *ts = ts_;
+
   clReleaseEvent(evt_0);
   clReleaseEvent(evt_1);
   clReleaseEvent(evt_2);
@@ -201,5 +215,5 @@ merklize(cl_context ctx,
   free(tmp_evts);
   free(tmp_bufs);
 
-  return status;
+  return CL_SUCCESS;
 }

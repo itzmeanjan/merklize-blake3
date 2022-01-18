@@ -27,34 +27,32 @@ permute(
 private
   uint permuted[16];
 
-  __attribute__((opencl_unroll_hint(16)))
-  for (size_t i = 0; i < 16; i++)
-  {
-    permuted[i] = *(msg + MSG_PERMUTATION[i]);
+#pragma unroll 16
+  for (size_t i = 0; i < 16; i++) {
+    permuted[i] = msg[MSG_PERMUTATION[i]];
   }
 
-  __attribute__((opencl_unroll_hint(16)))
-  for (size_t i = 0; i < 16; i++)
-  {
-    *(msg + i) = permuted[i];
+#pragma unroll 16
+  for (size_t i = 0; i < 16; i++) {
+    msg[i] = permuted[i];
   }
 }
 
-void
-round(private uint4* const state,
+inline void
+blake3_round(private uint4* const state,
 
 #if defined(LE_BYTES_TO_WORDS) && defined(WORDS_TO_LE_BYTES)
-      private const uint* msg
+             private const uint* msg
 #else
-      global const uint* msg
+             global const uint* msg
 #endif
 
 )
 {
-  uint4 mx = (uint4)(*(msg + 0), *(msg + 2), *(msg + 4), *(msg + 6));
-  uint4 my = (uint4)(*(msg + 1), *(msg + 3), *(msg + 5), *(msg + 7));
-  uint4 mz = (uint4)(*(msg + 8), *(msg + 10), *(msg + 12), *(msg + 14));
-  uint4 mw = (uint4)(*(msg + 9), *(msg + 11), *(msg + 13), *(msg + 15));
+  const uint4 mx = (uint4)(msg[0], msg[2], msg[4], msg[6]);
+  const uint4 my = (uint4)(msg[1], msg[3], msg[5], msg[7]);
+  const uint4 mz = (uint4)(msg[8], msg[10], msg[12], msg[14]);
+  const uint4 mw = (uint4)(msg[9], msg[11], msg[13], msg[15]);
 
   const uint4 rrot_16 = (uint4)(16);
   const uint4 rrot_12 = (uint4)(20);
@@ -62,52 +60,34 @@ round(private uint4* const state,
   const uint4 rrot_7 = (uint4)(25);
 
   // column-wise mixing
-  *(state + 0) = *(state + 0) + *(state + 1) + mx;
-  *(state + 3) = rotate(*(state + 3) ^ *(state + 0), rrot_16);
-  *(state + 2) = *(state + 2) + *(state + 3);
-  *(state + 1) = rotate(*(state + 1) ^ *(state + 2), rrot_12);
-  *(state + 0) = *(state + 0) + *(state + 1) + my;
-  *(state + 3) = rotate(*(state + 3) ^ *(state + 0), rrot_8);
-  *(state + 2) = *(state + 2) + *(state + 3);
-  *(state + 1) = rotate(*(state + 1) ^ *(state + 2), rrot_7);
+  state[0] = state[0] + state[1] + mx;
+  state[3] = rotate(state[3] ^ state[0], rrot_16);
+  state[2] = state[2] + state[3];
+  state[1] = rotate(state[1] ^ state[2], rrot_12);
+  state[0] = state[0] + state[1] + my;
+  state[3] = rotate(state[3] ^ state[0], rrot_8);
+  state[2] = state[2] + state[3];
+  state[1] = rotate(state[1] ^ state[2], rrot_7);
 
   // state matrix diagonalization
-  {
-    uint4 tmp = *(state + 1);
-    *(state + 1) = tmp.yzwx;
-  }
-  {
-    uint4 tmp = *(state + 2);
-    *(state + 2) = tmp.zwxy;
-  }
-  {
-    uint4 tmp = *(state + 3);
-    *(state + 3) = tmp.wxyz;
-  }
+  state[1] = state[1].yzwx;
+  state[2] = state[2].zwxy;
+  state[3] = state[3].wxyz;
 
   // row-wise mixing
-  *(state + 0) = *(state + 0) + *(state + 1) + mz;
-  *(state + 3) = rotate(*(state + 3) ^ *(state + 0), rrot_16);
-  *(state + 2) = *(state + 2) + *(state + 3);
-  *(state + 1) = rotate(*(state + 1) ^ *(state + 2), rrot_12);
-  *(state + 0) = *(state + 0) + *(state + 1) + mw;
-  *(state + 3) = rotate(*(state + 3) ^ *(state + 0), rrot_8);
-  *(state + 2) = *(state + 2) + *(state + 3);
-  *(state + 1) = rotate(*(state + 1) ^ *(state + 2), rrot_7);
+  state[0] = state[0] + state[1] + mz;
+  state[3] = rotate(state[3] ^ state[0], rrot_16);
+  state[2] = state[2] + state[3];
+  state[1] = rotate(state[1] ^ state[2], rrot_12);
+  state[0] = state[0] + state[1] + mw;
+  state[3] = rotate(state[3] ^ state[0], rrot_8);
+  state[2] = state[2] + state[3];
+  state[1] = rotate(state[1] ^ state[2], rrot_7);
 
   // state matrix un-diagonalization
-  {
-    uint4 tmp = *(state + 1);
-    *(state + 1) = tmp.wxyz;
-  }
-  {
-    uint4 tmp = *(state + 2);
-    *(state + 2) = tmp.zwxy;
-  }
-  {
-    uint4 tmp = *(state + 3);
-    *(state + 3) = tmp.yzwx;
-  }
+  state[1] = state[1].wxyz;
+  state[2] = state[2].zwxy;
+  state[3] = state[3].yzwx;
 }
 
 void
@@ -141,31 +121,31 @@ private
                              flags) };
 
   // round 1
-  round(state, msg);
+  blake3_round(state, msg);
   permute(msg);
 
   // round 2
-  round(state, msg);
+  blake3_round(state, msg);
   permute(msg);
 
   // round 3
-  round(state, msg);
+  blake3_round(state, msg);
   permute(msg);
 
   // round 4
-  round(state, msg);
+  blake3_round(state, msg);
   permute(msg);
 
   // round 5
-  round(state, msg);
+  blake3_round(state, msg);
   permute(msg);
 
   // round 6
-  round(state, msg);
+  blake3_round(state, msg);
   permute(msg);
 
   // round 7
-  round(state, msg);
+  blake3_round(state, msg);
 
   // preparing 32 -bytes output chaining value
   state[0] ^= state[2];
@@ -179,9 +159,8 @@ private
 void
 words_from_le_bytes(global const uchar* input, private uint* const msg_words)
 {
-  __attribute__((opencl_unroll_hint(8)))
-  for (size_t i = 0; i < 16; i++)
-  {
+#pragma unroll 8
+  for (size_t i = 0; i < 16; i++) {
     *(msg_words + i) = ((uint) * (input + i * 4 + 3) << 24) |
                        ((uint) * (input + i * 4 + 2) << 16) |
                        ((uint) * (input + i * 4 + 1) << 8) |
@@ -192,9 +171,8 @@ words_from_le_bytes(global const uchar* input, private uint* const msg_words)
 void
 words_to_le_bytes(private const uint* msg_words, global uchar* const output)
 {
-  __attribute__((opencl_unroll_hint(8)))
-  for (size_t i = 0; i < 8; i++)
-  {
+#pragma unroll 8
+  for (size_t i = 0; i < 8; i++) {
     const uint num = *(msg_words + i);
 
     *(output + i * 4 + 0) = (uchar)(num >> 0) & 0xff;

@@ -27,13 +27,13 @@ permute(
 private
   uint permuted[16];
 
-#pragma unroll 16
-  for (size_t i = 0; i < 16; i++) {
+  __attribute__((opencl_unroll_hint(16))) for (size_t i = 0; i < 16; i++)
+  {
     permuted[i] = *(msg + MSG_PERMUTATION[i]);
   }
 
-#pragma unroll 16
-  for (size_t i = 0; i < 16; i++) {
+  __attribute__((opencl_unroll_hint(16))) for (size_t i = 0; i < 16; i++)
+  {
     *(msg + i) = permuted[i];
   }
 }
@@ -177,8 +177,8 @@ private
 void
 words_from_le_bytes(global const uchar* input, private uint* const msg_words)
 {
-#pragma unroll 8
-  for (size_t i = 0; i < 16; i++) {
+  __attribute__((opencl_unroll_hint(8))) for (size_t i = 0; i < 16; i++)
+  {
     *(msg_words + i) = ((uint) * (input + i * 4 + 3) << 24) |
                        ((uint) * (input + i * 4 + 2) << 16) |
                        ((uint) * (input + i * 4 + 1) << 8) |
@@ -189,8 +189,8 @@ words_from_le_bytes(global const uchar* input, private uint* const msg_words)
 void
 words_to_le_bytes(private const uint* msg_words, global uchar* const output)
 {
-#pragma unroll 8
-  for (size_t i = 0; i < 8; i++) {
+  __attribute__((opencl_unroll_hint(8))) for (size_t i = 0; i < 8; i++)
+  {
     const uint num = *(msg_words + i);
 
     *(output + i * 4 + 0) = (uchar)(num >> 0) & 0xff;

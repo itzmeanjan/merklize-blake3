@@ -10,10 +10,17 @@
 #include <stdlib.h>
 #include <string.h>
 
-const char ocl_kernel_flag_0[] = "-cl-std=CL2.0 -w -DLE_BYTES_TO_WORDS "
-                                 "-DWORDS_TO_LE_BYTES -DEXPOSE_BLAKE3_HASH";
-const char ocl_kernel_flag_1[] = "-cl-std=CL2.0 -w -DEXPOSE_BLAKE3_HASH";
-const char ocl_kernel_flag_2[] = "-cl-std=CL2.0 -w";
+// Following compiler flags can be passed while online compiling kernel
+const char ocl_kernel_flag_0[] =
+  "-cl-std=CL2.0 -w -DLE_BYTES_TO_WORDS "
+  "-DWORDS_TO_LE_BYTES -DEXPOSE_BLAKE3_HASH"; // when taking input & output
+                                              // buffers as `uchar *`
+const char ocl_kernel_flag_1[] =
+  "-cl-std=CL2.0 -w -DEXPOSE_BLAKE3_HASH"; // when taking input & output buffers
+                                           // as `uint *`
+const char ocl_kernel_flag_2[] =
+  "-cl-std=CL2.0 -w"; // when only exposing `merklize` kernel for constructing
+                      // merkle tree
 
 #define check_for_error_and_return(status)                                     \
   if (status != CL_SUCCESS) {                                                  \
@@ -30,6 +37,7 @@ const char ocl_kernel_flag_2[] = "-cl-std=CL2.0 -w";
     exit(EXIT_FAILURE);                                                        \
   }
 
+// Attempts to find OpenCL accelerator device accesible from current host
 cl_int
 find_device(cl_device_id* device_id)
 {
@@ -86,6 +94,7 @@ find_device(cl_device_id* device_id)
   return CL_DEVICE_NOT_FOUND;
 }
 
+// Given a source kernel file, builds OpenCL program with it
 cl_int
 build_kernel(cl_context ctx,
              cl_device_id dev_id,
@@ -123,6 +132,7 @@ build_kernel(cl_context ctx,
   return CL_SUCCESS;
 }
 
+// Shows build log resulted from online compilation of OpenCL program
 cl_int
 show_build_log(cl_device_id dev_id, cl_program prgm)
 {
@@ -133,6 +143,10 @@ show_build_log(cl_device_id dev_id, cl_program prgm)
     prgm, dev_id, CL_PROGRAM_BUILD_LOG, 0, NULL, &log_size);
   if (status != CL_SUCCESS) {
     return status;
+  }
+
+  if (log_size == 0) {
+    return CL_SUCCESS;
   }
 
   void* log = malloc(log_size);
@@ -151,34 +165,45 @@ show_build_log(cl_device_id dev_id, cl_program prgm)
   return CL_SUCCESS;
 }
 
+// Generates random byte array
 void
 random_input(cl_uchar* in, size_t count)
 {
+#pragma unroll // unroll factor is compiler decided at runtime ( only partial
+               // unrolling )
+               // read
+               // https://intel.github.io/llvm-docs/clang/AttributeReference.html#pragma-unroll-pragma-nounroll
   for (size_t i = 0; i < count; i++) {
     *(in + i) = (cl_uchar)rand();
   }
 }
 
-// compile time known input pattern, used for testing
+// Compile time known input pattern, used for testing
 void
 static_input_0(cl_uchar* const in, size_t count)
 {
-#pragma unroll
+#pragma unroll // unroll factor is compiler decided at runtime ( only partial
+               // unrolling )
+               // read
+               // https://intel.github.io/llvm-docs/clang/AttributeReference.html#pragma-unroll-pragma-nounroll
   for (size_t i = 0; i < count; i++) {
     *(in + i) = (cl_uchar)(i % 256);
   }
 }
 
-// compile time known input pattern, used for testing
+// Compile time known input pattern, used for testing
 //
-// note this produces same input byte array as `static_input_0`
+// Note, this produces same input byte array as `static_input_0`
 // written above, with just an exception of 4 consequtive little
 // endian bytes being interpreted as `cl_uint` --- 32 -bit unsigned
 // integer
 void
 static_input_1(cl_uint* const in, size_t count)
 {
-#pragma unroll
+#pragma unroll // unroll factor is compiler decided at runtime ( only partial
+               // unrolling )
+               // read
+               // https://intel.github.io/llvm-docs/clang/AttributeReference.html#pragma-unroll-pragma-nounroll
   for (size_t i = 0; i < count; i++) {
     size_t i_ = i * 4;
 
@@ -187,6 +212,7 @@ static_input_1(cl_uint* const in, size_t count)
   }
 }
 
+// Utility function, same as present in kernel.cl
 void
 words_from_le_bytes(const cl_uchar* input,
                     size_t i_size,
@@ -196,6 +222,8 @@ words_from_le_bytes(const cl_uchar* input,
   // because each message word is of 4 -bytes width
   assert(i_size == m_cnt * 4);
 
+#pragma unroll // partial unroll at runtime; see
+               // https://intel.github.io/llvm-docs/clang/AttributeReference.html#pragma-unroll-pragma-nounroll
   for (size_t i = 0; i < m_cnt; i++) {
     const cl_uchar* i_start = input + i * 4;
 
@@ -205,6 +233,7 @@ words_from_le_bytes(const cl_uchar* input,
   }
 }
 
+// Utility function, same as present in kernel.cl
 void
 words_to_le_bytes(const cl_uint* msg_words,
                   size_t m_cnt,
@@ -214,6 +243,9 @@ words_to_le_bytes(const cl_uint* msg_words,
   // because each message word is of 4 -bytes width
   assert(o_size == m_cnt * 4);
 
+#pragma unroll // compiler decided runtime partial unrolling
+               // see
+               // https://intel.github.io/llvm-docs/clang/AttributeReference.html#pragma-unroll-pragma-nounroll
   for (size_t i = 0; i < m_cnt; i++) {
     const cl_uint num = *(msg_words + i);
     cl_uchar* out = output + i * 4;
@@ -225,6 +257,13 @@ words_to_le_bytes(const cl_uint* msg_words,
   }
 }
 
+// Ensure that OpenCL queue has profiling enabled, other wise this function
+// should fail
+//
+// Returns actual execution time of command associated with this event
+//
+// Assumes, hierarchical parallelism is not used, as this function doesn't take
+// difference between COMMAND_START & COMMAND_COMPLETE
 cl_int
 time_event(cl_event evt, cl_ulong* const ts)
 {

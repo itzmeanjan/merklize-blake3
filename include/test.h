@@ -2,6 +2,8 @@
 #include "hash.h"
 #include "utils.h"
 
+// Tests hash_0( ... ) i.e. when opencl kernel `hash` is compiled
+// with flags `ocl_kernel_flag_0`
 cl_int
 test_hash_0(cl_context ctx, cl_command_queue cq, cl_kernel hash_krnl)
 {
@@ -12,11 +14,13 @@ test_hash_0(cl_context ctx, cl_command_queue cq, cl_kernel hash_krnl)
 
   cl_int status;
 
+  // allocate memory on heap
   cl_uchar* in = (cl_uchar*)malloc(sizeof(cl_uchar) * 64);
   check_mem_alloc(in);
   cl_uchar* out = (cl_uchar*)malloc(sizeof(cl_uchar) * 32);
   check_mem_alloc(out);
 
+  // prepare 64 -bytes (known) input
   static_input_0(in, 64);
   status = hash_0(ctx, cq, hash_krnl, in, out);
 
@@ -32,6 +36,8 @@ test_hash_0(cl_context ctx, cl_command_queue cq, cl_kernel hash_krnl)
   return status;
 }
 
+// Tests hash_1( ... ) i.e. when opencl kernel `hash` is compiled
+// with flags `ocl_kernel_flag_1`
 cl_int
 test_hash_1(cl_context ctx, cl_command_queue cq, cl_kernel hash_krnl)
 {
@@ -40,6 +46,7 @@ test_hash_1(cl_context ctx, cl_command_queue cq, cl_kernel hash_krnl)
 
   cl_int status;
 
+  // allocate memory on heap
   cl_uchar* i_bytes = (cl_uchar*)malloc(sizeof(cl_uchar) * 64);
   check_mem_alloc(i_bytes);
   cl_uint* in = (cl_uint*)malloc(sizeof(cl_uint) * 16);
@@ -47,7 +54,9 @@ test_hash_1(cl_context ctx, cl_command_queue cq, cl_kernel hash_krnl)
   cl_uint* out = (cl_uint*)malloc(sizeof(cl_uint) * 8);
   check_mem_alloc(out);
 
+  // prepare 64 -bytes (known) input
   static_input_0(i_bytes, 64);
+  // interpreting little endian bytes as `uint`
   words_from_le_bytes(i_bytes, 64, in, 16);
   status = hash_1(ctx, cq, hash_krnl, in, out);
 

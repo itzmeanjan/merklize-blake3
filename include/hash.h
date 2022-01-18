@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+// This function is expected to test OpenCL kernel `hash`, when
+// `ocl_kernel_flag_0` compilation flags are passed
 cl_int
 hash_0(cl_context ctx,
        cl_command_queue cq,
@@ -64,6 +66,8 @@ hash_0(cl_context ctx,
   return status;
 }
 
+// This function is expected to test OpenCL kernel `hash`, when
+// `ocl_kernel_flag_1` compilation flags are passed
 cl_int
 hash_1(cl_context ctx,
        cl_command_queue cq,

@@ -10,6 +10,8 @@
     return EXIT_FAILURE;                                                       \
   }
 
+// Executes same kernel N -times with same input configuration, finding out
+// average execution time in nanosecond level granularity
 #define avg_bench_time(itr_cnt)                                                \
   for (size_t i = 0; i < itr_cnt; i++) {                                       \
     cl_ulong ts_ = 0;                                                          \
@@ -42,14 +44,27 @@ main(int argc, char** argv)
   cl_context ctx = clCreateContext(NULL, 1, &dev_id, NULL, NULL, &status);
   show_message_and_exit(status, "failed to create context !\n");
 
-  // enable profiling in queue, to get (precise) kernel execution time
-  cl_queue_properties props[] = { CL_QUEUE_PROPERTIES,
-                                  CL_QUEUE_PROFILING_ENABLE |
-                                    CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE,
-                                  0 };
+  // enable profiling in queue, to get (precise) kernel execution time with
+  // nanosecond level granularity
+  //
+  // out of order execution is beneficial, because hierarchical structure of
+  // merkle tree requires multiple command submissions, which are not always
+  // dependent on all previous commands enqueued till now
+  //
+  // in certain cases, runtime will benefit by better inferring compute
+  // dependency graph from event dependencies specified when enqueuing commands
+  cl_queue_properties props[] = {
+    CL_QUEUE_PROPERTIES,
+    CL_QUEUE_PROFILING_ENABLE |
+      CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, // because it's a bit field
+    0
+  };
   cl_command_queue c_queue =
     clCreateCommandQueueWithProperties(ctx, dev_id, props, &status);
   show_message_and_exit(status, "failed to create command queue !\n");
+
+  // Note following three programs, use different compilation flags
+  // resulting into different kernels in preprocessed source code
 
   cl_program prgm_0;
   status = build_kernel(ctx, dev_id, "kernel.cl", ocl_kernel_flag_0, &prgm_0);
@@ -84,6 +99,7 @@ main(int argc, char** argv)
   cl_kernel krnl_1 = clCreateKernel(prgm_1, "hash", &status);
   show_message_and_exit(status, "failed to create `hash` kernel !\n");
 
+  // kernel to be used for benchmarking
   cl_kernel krnl_2 = clCreateKernel(prgm_2, "merklize", &status);
   show_message_and_exit(status, "failed to create `merklize` kernel !\n");
 
@@ -106,6 +122,7 @@ main(int argc, char** argv)
       "merklize\t\t2 ^ %2zu leaves\t\tin %16.4lf ms\n", i, (double)ts * 1e-6);
   }
 
+  // release all opencl resources acquired
   clReleaseKernel(krnl_0);
   clReleaseKernel(krnl_1);
   clReleaseKernel(krnl_2);
@@ -116,6 +133,7 @@ main(int argc, char** argv)
   clReleaseContext(ctx);
   clReleaseDevice(dev_id);
 
+  // release host memory
   free(dev_name);
 
   return EXIT_SUCCESS;

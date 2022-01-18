@@ -10,6 +10,14 @@
     return EXIT_FAILURE;                                                       \
   }
 
+#define avg_bench_time(itr_cnt)                                                \
+  for (size_t i = 0; i < itr_cnt; i++) {                                       \
+    cl_ulong ts_ = 0;                                                          \
+    status = bench_merklize(ctx, c_queue, krnl_2, leaf_count, wg_size, &ts_);  \
+    ts += ts_;                                                                 \
+  }                                                                            \
+  ts /= itr_cnt;
+
 int
 main(int argc, char** argv)
 {
@@ -86,13 +94,16 @@ main(int argc, char** argv)
   printf("\nBenchmarking Binary Merklization using BLAKE3\n\n");
 
   const size_t wg_size = 1 << 5;
+  const size_t itr_cnt = 1 << 3;
 
   for (size_t i = 20; i <= 25; i++) {
-    cl_ulong ts = 0;
     size_t leaf_count = 1 << i;
 
-    status = bench_merklize(ctx, c_queue, krnl_2, leaf_count, wg_size, &ts);
-    printf("merklize\t\t2 ^ %2zu leaves\t\tin %16.4lf ms\n", i, (double)ts * 1e-6);
+    cl_ulong ts = 0;
+    avg_bench_time(itr_cnt);
+
+    printf(
+      "merklize\t\t2 ^ %2zu leaves\t\tin %16.4lf ms\n", i, (double)ts * 1e-6);
   }
 
   clReleaseKernel(krnl_0);

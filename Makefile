@@ -1,8 +1,8 @@
 # for host code written in c
 CXX = clang
-CXX_FLAGS = -std=c17 -Wall
+CXX_FLAGS = -std=c2x -Wall
 INCLUDE_DIR = -I./include
-LINK_FLAGS = -lOpenCL
+LINK_FLAGS = -lOpenCL -lm
 PROG = run
 
 # for kernel written in opencl c

@@ -10,9 +10,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-const char ocl_kernel_flag_0[] = "-cl-std=CL2.0 -w\
-  -DLE_BYTES_TO_WORDS -DWORDS_TO_LE_BYTES -DEXPOSE_BLAKE3_HASH";
+const char ocl_kernel_flag_0[] = "-cl-std=CL2.0 -w -DLE_BYTES_TO_WORDS "
+                                 "-DWORDS_TO_LE_BYTES -DEXPOSE_BLAKE3_HASH";
 const char ocl_kernel_flag_1[] = "-cl-std=CL2.0 -w -DEXPOSE_BLAKE3_HASH";
+const char ocl_kernel_flag_2[] = "-cl-std=CL2.0 -w";
 
 #define check_for_error_and_return(status)                                     \
   if (status != CL_SUCCESS) {                                                  \
@@ -222,4 +223,27 @@ words_to_le_bytes(const cl_uint* msg_words,
     *(out + 2) = (cl_uchar)(num >> 16) & 0xff;
     *(out + 3) = (cl_uchar)(num >> 24) & 0xff;
   }
+}
+
+cl_int
+time_event(cl_event evt, cl_ulong* const ts)
+{
+  cl_int status;
+
+  cl_ulong start = 0;
+  cl_ulong end = 0;
+
+  // command execution started at
+  status = clGetEventProfilingInfo(
+    evt, CL_PROFILING_COMMAND_START, sizeof(cl_ulong), &start, NULL);
+  check_for_error_and_return(status);
+
+  // command execution ended at
+  status = clGetEventProfilingInfo(
+    evt, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &end, NULL);
+  check_for_error_and_return(status);
+
+  *ts = end - start;
+
+  return CL_SUCCESS;
 }

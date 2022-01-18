@@ -18,10 +18,18 @@ merklize(cl_context ctx,
          size_t i_size, // in bytes
          size_t leaf_count,
          cl_uchar* const output,
+         size_t o_size,
          size_t wg_size,
          cl_ulong* const ts)
 {
-  // because each leaf node Merkle Tree will be of width 32 -bytes
+  // binary merkle tree with N leaf nodes is input, where N = 2 ^ i
+  // there will be (N - 1) intermediate nodes, to be computed in this function
+  //
+  // for storing all these intermediate nodes, passing them back to caller
+  // as return value, allocation size of output is same as input
+  assert(i_size == o_size);
+
+  // because each leaf node of Merkle Tree will be of width 32 -bytes
   assert(leaf_count << 5 == i_size);
 
   // power of 2 many leaf nodes in binary merkle tree
@@ -53,8 +61,9 @@ merklize(cl_context ctx,
   // order
   words_from_le_bytes(input, i_size, i_buf_ptr, i_buf_elm_cnt);
 
-  // allocating 32 -bytes memory on heap for storing root of merkle tree
-  cl_uint* root_ptr = (cl_uint*)malloc(sizeof(cl_uint) * 8);
+  // allocating enough memory on heap for storing all intermediate nodes of
+  // merkle tree
+  cl_uint* itmd_buf_ptr = (cl_uint*)malloc(itmd_buf_size);
 
   const size_t i_offset = 0;
   const size_t itmd_offset = itmd_buf_elm_cnt >> 1;
@@ -193,14 +202,14 @@ merklize(cl_context ctx,
     *(tmp_bufs + (r << 1) + 1) = itmd_offset_buf_;
   }
 
-  // 32 -bytes root of merkle tree being copied back to host
+  // all intermediate nodes of merkle tree being copied back to host
   cl_event evt_4;
   clEnqueueReadBuffer(cq,
                       itmd_buf,
                       CL_FALSE,
-                      32,
-                      sizeof(cl_uint) * 8,
-                      root_ptr,
+                      0,
+                      itmd_buf_size,
+                      itmd_buf_ptr,
                       1,
                       round_evts + rounds,
                       &evt_4);
@@ -208,9 +217,10 @@ merklize(cl_context ctx,
   // let compute dependency chain finish its execution
   clWaitForEvents(1, &evt_4);
 
-  // root of merkle tree being interpreted as little endian
-  // byte array
-  words_to_le_bytes(root_ptr, 8, output, 32);
+  // all intermediate nodes of merkle tree being interpreted
+  // as little endian byte array, as input was provided, output being
+  // converted to similar representation
+  words_to_le_bytes(itmd_buf_ptr, itmd_buf_elm_cnt, output, o_size);
 
   // sum of execution time of kernels with
   // nanosecond level of granularity
@@ -251,7 +261,7 @@ merklize(cl_context ctx,
 
   // release all heap allocation
   free(i_buf_ptr);
-  free(root_ptr);
+  free(itmd_buf_ptr);
   free(round_evts);
   free(tmp_evts);
   free(tmp_bufs);

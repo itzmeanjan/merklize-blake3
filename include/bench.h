@@ -19,18 +19,23 @@ bench_merklize(cl_context ctx,
 
   cl_int status;
 
+  const size_t i_size = leaf_count << 5;
+  const size_t o_size = leaf_count << 5;
+
   // allocate input/ output memory on host
-  cl_uchar* in = (cl_uchar*)malloc(sizeof(cl_uchar) * leaf_count << 5);
+  cl_uchar* in = (cl_uchar*)malloc(i_size);
   check_mem_alloc(in);
-  cl_uchar* out = (cl_uchar*)malloc(sizeof(cl_uchar) * 32);
+  // all intermediate nodes of merkle tree to be
+  // placed on this host allocation
+  cl_uchar* out = (cl_uchar*)malloc(o_size);
   check_mem_alloc(out);
 
-  // generate random input bytes
+  // generate random input bytes i.e. leaf nodes of binary merkle tree
   random_input(in, leaf_count << 5);
 
   // merklize leaf nodes
   status = merklize(
-    ctx, cq, merklize_krnl, in, leaf_count << 5, leaf_count, out, wg_size, ts);
+    ctx, cq, merklize_krnl, in, i_size, leaf_count, out, o_size, wg_size, ts);
 
   // deallocate memory
   free(in);

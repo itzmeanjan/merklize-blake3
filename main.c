@@ -1,6 +1,7 @@
 // Adapted from
 // https://github.com/itzmeanjan/vectorized-rescue-prime/blob/614500d/main.c
 
+#include "bench.h"
 #include "test.h"
 
 #define show_message_and_exit(status, msg)                                     \
@@ -35,7 +36,8 @@ main(int argc, char** argv)
 
   // enable profiling in queue, to get (precise) kernel execution time
   cl_queue_properties props[] = { CL_QUEUE_PROPERTIES,
-                                  CL_QUEUE_PROFILING_ENABLE,
+                                  CL_QUEUE_PROFILING_ENABLE |
+                                    CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE,
                                   0 };
   cl_command_queue c_queue =
     clCreateCommandQueueWithProperties(ctx, dev_id, props, &status);
@@ -50,9 +52,6 @@ main(int argc, char** argv)
     return EXIT_FAILURE;
   }
 
-  status = show_build_log(dev_id, prgm_0);
-  show_message_and_exit(status, "failed to obtain kernel build log !\n");
-
   cl_program prgm_1;
   status = build_kernel(ctx, dev_id, "kernel.cl", ocl_kernel_flag_1, &prgm_1);
   if (status != CL_SUCCESS) {
@@ -62,9 +61,14 @@ main(int argc, char** argv)
     return EXIT_FAILURE;
   }
 
-  // skip showing build log again
-  status = show_build_log(dev_id, prgm_1);
-  show_message_and_exit(status, "failed to obtain kernel build log !\n");
+  cl_program prgm_2;
+  status = build_kernel(ctx, dev_id, "kernel.cl", ocl_kernel_flag_2, &prgm_2);
+  if (status != CL_SUCCESS) {
+    printf("failed to compile kernel !\n");
+
+    show_build_log(dev_id, prgm_2);
+    return EXIT_FAILURE;
+  }
 
   cl_kernel krnl_0 = clCreateKernel(prgm_0, "hash", &status);
   show_message_and_exit(status, "failed to create `hash` kernel !\n");
@@ -72,15 +76,31 @@ main(int argc, char** argv)
   cl_kernel krnl_1 = clCreateKernel(prgm_1, "hash", &status);
   show_message_and_exit(status, "failed to create `hash` kernel !\n");
 
+  cl_kernel krnl_2 = clCreateKernel(prgm_2, "merklize", &status);
+  show_message_and_exit(status, "failed to create `merklize` kernel !\n");
+
   status = test_hash_0(ctx, c_queue, krnl_0);
   status = test_hash_1(ctx, c_queue, krnl_1);
 
-  printf("passed blake3 hash test !\n");
+  printf("\npassed blake3 hash test !\n");
+  printf("\nBenchmarking Binary Merklization using BLAKE3\n\n");
+
+  const size_t wg_size = 1 << 5;
+
+  for (size_t i = 20; i <= 25; i++) {
+    cl_ulong ts = 0;
+    size_t leaf_count = 1 << i;
+
+    status = bench_merklize(ctx, c_queue, krnl_2, leaf_count, wg_size, &ts);
+    printf("merklize\t\t2 ^ %2zu leaves\t\tin %16.4lf ms\n", i, (double)ts * 1e-6);
+  }
 
   clReleaseKernel(krnl_0);
   clReleaseKernel(krnl_1);
+  clReleaseKernel(krnl_2);
   clReleaseProgram(prgm_0);
   clReleaseProgram(prgm_1);
+  clReleaseProgram(prgm_2);
   clReleaseCommandQueue(c_queue);
   clReleaseContext(ctx);
   clReleaseDevice(dev_id);

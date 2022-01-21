@@ -37,21 +37,23 @@ private
   uint permuted[16];
 
 // expecting this loop to be fully unrolled !
+// when target device supports opencl c 2.0 minimum
 //
-// I found using
-// https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_C.html#specifying-attribute-for-unrolling-loops
-// syntax results into compilation failure on Nvidia Tesla V100
-#pragma unroll 16
+// see https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_C.html#specifying-attribute-for-unrolling-loops
+#if __OPENCL_C_VERSION__ >= CL_VERSION_2_0
+  __attribute__((opencl_unroll_hint(16)))
+#endif
   for (size_t i = 0; i < 16; i++) {
     permuted[i] = msg[MSG_PERMUTATION[i]];
   }
 
 // expecting this loop to be fully unrolled !
+// when target device supports opencl c 2.0 minimum
 //
-// I found using
-// https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_C.html#specifying-attribute-for-unrolling-loops
-// syntax results into compilation failure on Nvidia Tesla V100
-#pragma unroll 16
+// see https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_C.html#specifying-attribute-for-unrolling-loops
+#if __OPENCL_C_VERSION__ >= CL_VERSION_2_0
+  __attribute__((opencl_unroll_hint(16)))
+#endif
   for (size_t i = 0; i < 16; i++) {
     msg[i] = permuted[i];
   }
@@ -211,10 +213,15 @@ private
 // https://doc.rust-lang.org/std/primitive.u32.html#method.from_le_bytes
 void words_from_le_bytes(global const uchar *input,
                          private uint *const msg_words) {
-  // following
-  // https://intel.github.io/llvm-docs/clang/AttributeReference.html#pragma-unroll-pragma-nounroll
-#pragma unroll 8 // should partially unroll !
-  for (size_t i = 0; i < 16; i++) {
+
+// partially unroll following loop
+// when target device supports opencl c 2.0 minimum
+//
+// see https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_C.html#specifying-attribute-for-unrolling-loops
+#if __OPENCL_C_VERSION__ >= CL_VERSION_2_0
+  __attribute__((opencl_unroll_hint(8)))
+#endif
+  for (size_t i = 0; i < 16; i++) { // loop should be partially unrolled !
     *(msg_words + i) = ((uint) * (input + i * 4 + 3) << 24) |
                        ((uint) * (input + i * 4 + 2) << 16) |
                        ((uint) * (input + i * 4 + 1) << 8) |
@@ -229,9 +236,14 @@ void words_from_le_bytes(global const uchar *input,
 // https://doc.rust-lang.org/std/primitive.u32.html#method.to_le_bytes
 void words_to_le_bytes(private const uint *msg_words,
                        global uchar *const output) {
-  // following
-  // https://intel.github.io/llvm-docs/clang/AttributeReference.html#pragma-unroll-pragma-nounroll
-#pragma unroll 8 // fully parallelize loop !
+
+// fully parallelize following loop
+// when target device supports opencl c 2.0 minimum
+//
+// see https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_C.html#specifying-attribute-for-unrolling-loops
+#if __OPENCL_C_VERSION__ >= CL_VERSION_2_0
+  __attribute__((opencl_unroll_hint(8)))
+#endif
   for (size_t i = 0; i < 8; i++) {
     const uint num = *(msg_words + i);
 

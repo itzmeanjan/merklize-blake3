@@ -46,6 +46,26 @@ InstalledDir: /home/ubuntu/sycl_workspace/llvm/build/bin
 sudo apt-get install clinfo
 ```
 
+- I wanted to check what's supported OpenCL C version on my development machine, so I executed following command on bash
+
+```bash
+$ clinfo | grep -i 'device opencl c'
+
+  Device OpenCL C Version                         OpenCL C 1.2
+  Device OpenCL C Version                         OpenCL C 3.0
+```
+
+Two outputs because this machine has two platforms
+
+```bash
+$ clinfo -l
+
+Platform #0: Intel(R) FPGA Emulation Platform for OpenCL(TM)
+ `-- Device #0: Intel(R) FPGA Emulation Device
+Platform #1: Intel(R) OpenCL
+ `-- Device #0: Intel(R) Xeon(R) CPU E5-2686 v4 @ 2.30GHz
+```
+
 ## Usage
 
 This is a header-only library, you can pretty easily use it in your project by just adding `./include` to your project's INCLUDE_PATH. You'll probably be interested in `./include/merklize.h` file, which has host portion of Binary Merklization implementation. Only `./kernel.cl` contains device executable code.
@@ -65,9 +85,36 @@ For benchmarking OpenCL accelerated Binary Merklization implementation using 2-t
 Command used for running benchmark
 
 ```bash
-make    # build executable
+make    # build executable, with JIT compiling kernel
 ./run   # execute
 ```
+
+---
+
+Note, it's possible to AOT compile kernel to **I**ntermediate **R**epresentation language ( read spirv ), using following command
+
+```bash
+make aot
+```
+
+As effect of successful execution of above command, 6 new IR files should be created.
+
+```bash
+$ file kernel_*
+
+kernel_0.bc:  LLVM IR bitcode
+kernel_0.spv: Khronos SPIR-V binary, little-endian, version 0x00010000, generator 0x0006000e
+kernel_1.bc:  LLVM IR bitcode
+kernel_1.spv: Khronos SPIR-V binary, little-endian, version 0x00010000, generator 0x0006000e
+kernel_2.bc:  LLVM IR bitcode
+kernel_2.spv: Khronos SPIR-V binary, little-endian, version 0x00010000, generator 0x0006000e
+```
+
+Among these 6 files three of them are LLVM bitcodes of compile time preprocessed variants of same `kernel.cl`, and other 3 are respective spirv 64 -bit IL forms of these LLVM IRs. These spirv64 files are of our interest, as they'll be consumed at runtime for constructing OpenCL program objects, which are then compiled using backend compiler, generating device specific binaries, before computation can be offloaded to accelerators.
+
+> [This](https://github.com/KhronosGroup/OpenCL-Guide/blob/4079d208cdc73cf060a8bf7a03cd4ea44d199d64/chapters/os_tooling.md) may be useful guide for understanding various tools available for offline compilation of OpenCL kernels.
+
+> Remove intermediate object files using `make clean`
 
 ## On Nvidia GPU
 

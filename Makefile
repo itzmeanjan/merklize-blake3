@@ -7,6 +7,8 @@ USE_SPIRV_FLAG = -DPROGRAM_FROM_IL
 
 # for kernel written in opencl c
 # which are compiled to llvm IR, emitting llvm bitcode
+#
+# see point (i) in https://github.com/KhronosGroup/OpenCL-Guide/blob/4079d208cdc73cf060a8bf7a03cd4ea44d199d64/chapters/os_tooling.md#compile-for-opencl-runtime
 CLCXX = clang
 CLCXX_FLAGS = -c -Wall -cl-std=CL2.0 -target spir64 -O0 -emit-llvm -DTO_IL
 LLVM_IR_0 = kernel_0.bc
@@ -15,6 +17,8 @@ LLVM_IR_2 = kernel_2.bc
 
 # after we've llvm ir, it'll be translated to spirv IR
 # using opensource llvm-spirv tool
+#
+# see point (ii) in https://github.com/KhronosGroup/OpenCL-Guide/blob/4079d208cdc73cf060a8bf7a03cd4ea44d199d64/chapters/os_tooling.md#compile-for-opencl-runtime
 LLVM_SPIRV = llvm-spirv
 SPIRV_IR_0 = kernel_0.spv
 SPIRV_IR_1 = kernel_1.spv

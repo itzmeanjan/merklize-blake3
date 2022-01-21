@@ -20,6 +20,27 @@
   }                                                                            \
   ts /= itr_cnt;
 
+#define STR_(x) #x
+#define STR(x) STR_(x)
+
+#ifndef PROGRAM_FROM_IL
+#define PROGRAM_FROM_SOURCE
+#else
+
+#ifndef SPIRV_IR_0
+#define SPIRV_IR_0 kernel_0.spv
+#endif
+
+#ifndef SPIRV_IR_1
+#define SPIRV_IR_1 kernel_1.spv
+#endif
+
+#ifndef SPIRV_IR_2
+#define SPIRV_IR_2 kernel_2.spv
+#endif
+
+#endif
+
 int
 main(int argc, char** argv)
 {
@@ -66,8 +87,14 @@ main(int argc, char** argv)
   // Note following three programs, use different compilation flags
   // resulting into different kernels in preprocessed source code
 
-  cl_program *prgm_0 = (cl_program *)malloc(sizeof(cl_program));
-  status = build_kernel(ctx, dev_id, "kernel.cl", ocl_kernel_flag_0, prgm_0);
+  cl_program* prgm_0 = (cl_program*)malloc(sizeof(cl_program));
+
+#ifdef PROGRAM_FROM_IL
+  status = build_kernel_from_il(ctx, dev_id, STR(SPIRV_IR_0), NULL, prgm_0);
+#else
+  status = build_kernel_from_source(
+    ctx, dev_id, "kernel.cl", ocl_kernel_flag_0, prgm_0);
+#endif
   if (status != CL_SUCCESS) {
     printf("failed to compile kernel !\n");
 
@@ -75,9 +102,14 @@ main(int argc, char** argv)
     return EXIT_FAILURE;
   }
 
-  cl_program *prgm_1 = (cl_program *)malloc(sizeof(cl_program));
+  cl_program* prgm_1 = (cl_program*)malloc(sizeof(cl_program));
 
-  status = build_kernel(ctx, dev_id, "kernel.cl", ocl_kernel_flag_1, prgm_1);
+#ifdef PROGRAM_FROM_IL
+  status = build_kernel_from_il(ctx, dev_id, STR(SPIRV_IR_1), NULL, prgm_1);
+#else
+  status = build_kernel_from_source(
+    ctx, dev_id, "kernel.cl", ocl_kernel_flag_1, prgm_1);
+#endif
   if (status != CL_SUCCESS) {
     printf("failed to compile kernel !\n");
 
@@ -85,9 +117,14 @@ main(int argc, char** argv)
     return EXIT_FAILURE;
   }
 
-  cl_program *prgm_2 = (cl_program *)malloc(sizeof(cl_program));
+  cl_program* prgm_2 = (cl_program*)malloc(sizeof(cl_program));
 
-  status = build_kernel(ctx, dev_id, "kernel.cl", ocl_kernel_flag_2, prgm_2);
+#ifdef PROGRAM_FROM_IL
+  status = build_kernel_from_il(ctx, dev_id, STR(SPIRV_IR_2), NULL, prgm_2);
+#else
+  status = build_kernel_from_source(
+    ctx, dev_id, "kernel.cl", ocl_kernel_flag_2, prgm_2);
+#endif
   if (status != CL_SUCCESS) {
     printf("failed to compile kernel !\n");
 

@@ -96,11 +96,11 @@ find_device(cl_device_id* device_id)
 
 // Given a source kernel file, builds OpenCL program with it
 cl_int
-build_kernel(cl_context ctx,
-             cl_device_id dev_id,
-             const char* kernel,
-             const char* flags,
-             cl_program* prgm)
+build_kernel_from_source(cl_context ctx,
+                         cl_device_id dev_id,
+                         const char* kernel,
+                         const char* flags,
+                         cl_program* prgm)
 {
   cl_int status;
 
@@ -125,11 +125,8 @@ build_kernel(cl_context ctx,
   free(kernel_src);
 
   status = clBuildProgram(*prgm, 1, &dev_id, flags, NULL, NULL);
-  if (status != CL_SUCCESS) {
-    return status;
-  }
 
-  return CL_SUCCESS;
+  return status;
 }
 
 // Shows build log resulted from online compilation of OpenCL program
@@ -285,4 +282,47 @@ time_event(cl_event evt, cl_ulong* const ts)
   *ts = end - start;
 
   return CL_SUCCESS;
+}
+
+cl_int
+build_kernel_from_il(cl_context ctx,
+                     cl_device_id dev_id,
+                     const char* il, // file path to IL
+                     const char* flags,
+                     cl_program* prgm)
+{
+  cl_int status;
+
+  // attempt to figure out what is file size in terms of bytes
+  FILE* fd = fopen(il, "r");
+  fseek(fd, 0, SEEK_END);
+  const size_t il_size = ftell(fd);
+  fseek(fd, 0, SEEK_SET);
+
+  // allocate memory so that spirv file content can be read into memory
+  char* il_src = (char*)malloc(sizeof(char) * il_size);
+  check_mem_alloc(il_src);
+
+  // read spirv file content into heap memory allocation
+  const size_t n = fread(il_src, sizeof(char), il_size, fd);
+
+  assert(n == il_size);
+  // close file handle
+  fclose(fd);
+
+  // prepare opencl program object from spirv
+  cl_program prgm_ =
+    clCreateProgramWithIL(ctx, (const void*)il_src, il_size, &status);
+  check_for_error_and_return(status);
+
+  // set return pointer value
+  *prgm = prgm_;
+
+  // release resources
+  free(il_src);
+
+  // build binary which can be loaded onto acceleration
+  status = clBuildProgram(*prgm, 1, &dev_id, flags, NULL, NULL);
+
+  return status;
 }

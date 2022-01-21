@@ -12,15 +12,14 @@
 
 // Following compiler flags can be passed while online compiling kernel
 const char ocl_kernel_flag_0[] =
-  "-cl-std=CL2.0 -w -DLE_BYTES_TO_WORDS "
+  "-w -DLE_BYTES_TO_WORDS "
   "-DWORDS_TO_LE_BYTES -DEXPOSE_BLAKE3_HASH"; // when taking input & output
                                               // buffers as `uchar *`
 const char ocl_kernel_flag_1[] =
-  "-cl-std=CL2.0 -w -DEXPOSE_BLAKE3_HASH"; // when taking input & output buffers
-                                           // as `uint *`
-const char ocl_kernel_flag_2[] =
-  "-cl-std=CL2.0 -w"; // when only exposing `merklize` kernel for constructing
-                      // merkle tree
+  "-w -DEXPOSE_BLAKE3_HASH";           // when taking input & output buffers
+                                       // as `uint *`
+const char ocl_kernel_flag_2[] = "-w"; // when only exposing `merklize` kernel
+                                       // for constructing merkle tree
 
 #define check_for_error_and_return(status)                                     \
   if (status != CL_SUCCESS) {                                                  \

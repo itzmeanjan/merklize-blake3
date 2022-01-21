@@ -1,23 +1,23 @@
 // Taken from BLAKE3 reference implementation
 // https://github.com/BLAKE3-team/BLAKE3/blob/da4c792d8094f35c05c41c9aeb5dfe4aa67ca1ac/reference_impl/reference_impl.rs#L40
-constant size_t MSG_PERMUTATION[16] = {2, 6,  3,  10, 7, 0,  4,  13,
+constant const size_t MSG_PERMUTATION[16] = {2, 6,  3,  10, 7, 0,  4,  13,
                                        1, 11, 12, 5,  9, 14, 15, 8};
 
 // Taken from BLAKE3 reference implementation
 // https://github.com/BLAKE3-team/BLAKE3/blob/da4c792d8094f35c05c41c9aeb5dfe4aa67ca1ac/reference_impl/reference_impl.rs#L36-L38
-constant uint IV[8] = {0x6A09E667, 0xBB67AE85, 0x3C6EF372, 0xA54FF53A,
+constant const uint IV[8] = {0x6A09E667, 0xBB67AE85, 0x3C6EF372, 0xA54FF53A,
                        0x510E527F, 0x9B05688C, 0x1F83D9AB, 0x5BE0CD19};
 
 // BLAKE3 constants
 // https://github.com/BLAKE3-team/BLAKE3/blob/da4c792d8094f35c05c41c9aeb5dfe4aa67ca1ac/reference_impl/reference_impl.rs#L23-L34
-constant size_t OUT_LEN = 32;
-constant size_t ROUNDS = 7;
+constant const size_t OUT_LEN = 32;
+constant const size_t ROUNDS = 7;
 
-constant uint BLOCK_LEN = 64;
-constant uint CHUNK_START = 1 << 0;
-constant uint CHUNK_END = 1 << 1;
-constant uint PARENT = 1 << 2;
-constant uint ROOT = 1 << 3;
+constant const uint BLOCK_LEN = 64;
+constant const uint CHUNK_START = 1 << 0;
+constant const uint CHUNK_END = 1 << 1;
+constant const uint PARENT = 1 << 2;
+constant const uint ROOT = 1 << 3;
 
 // Permutes input message words using a same-sized temporary array ( 64 -bytes
 // ), as per permutation index provided to kernel in constant memory
@@ -69,7 +69,11 @@ private
 // required to be diagonalised before applying diagonal mixing stage & also
 // after diagonal processing state matrix needs to be undiagonalised so that
 // next round of mixing can be applied properly !
-inline void blake3_round(private uint4 *const state,
+#ifndef TO_IL
+inline
+#endif
+
+void blake3_round(private uint4 *const state,
 
 #if defined(LE_BYTES_TO_WORDS) && defined(WORDS_TO_LE_BYTES)
                          private const uint *msg
@@ -252,7 +256,11 @@ void words_to_le_bytes(private const uint *msg_words,
 #if defined(EXPOSE_BLAKE3_HASH)
 kernel
 #else
+
+#ifndef TO_IL
 inline
+#endif
+
 #endif
 
     void

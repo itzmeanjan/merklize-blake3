@@ -1,12 +1,12 @@
 // Taken from BLAKE3 reference implementation
 // https://github.com/BLAKE3-team/BLAKE3/blob/da4c792d8094f35c05c41c9aeb5dfe4aa67ca1ac/reference_impl/reference_impl.rs#L40
-constant const size_t MSG_PERMUTATION[16] = {2, 6,  3,  10, 7, 0,  4,  13,
-                                       1, 11, 12, 5,  9, 14, 15, 8};
+constant const size_t MSG_PERMUTATION[16] = { 2, 6,  3,  10, 7, 0,  4,  13,
+                                              1, 11, 12, 5,  9, 14, 15, 8 };
 
 // Taken from BLAKE3 reference implementation
 // https://github.com/BLAKE3-team/BLAKE3/blob/da4c792d8094f35c05c41c9aeb5dfe4aa67ca1ac/reference_impl/reference_impl.rs#L36-L38
-constant const uint IV[8] = {0x6A09E667, 0xBB67AE85, 0x3C6EF372, 0xA54FF53A,
-                       0x510E527F, 0x9B05688C, 0x1F83D9AB, 0x5BE0CD19};
+constant const uint IV[8] = { 0x6A09E667, 0xBB67AE85, 0x3C6EF372, 0xA54FF53A,
+                              0x510E527F, 0x9B05688C, 0x1F83D9AB, 0x5BE0CD19 };
 
 // BLAKE3 constants
 // https://github.com/BLAKE3-team/BLAKE3/blob/da4c792d8094f35c05c41c9aeb5dfe4aa67ca1ac/reference_impl/reference_impl.rs#L23-L34
@@ -24,37 +24,43 @@ constant const uint ROOT = 1 << 3;
 //
 // See
 // https://github.com/BLAKE3-team/BLAKE3/blob/da4c792d8094f35c05c41c9aeb5dfe4aa67ca1ac/reference_impl/reference_impl.rs#L67-L73
-void permute(
+void
+permute(
 
 #if defined(LE_BYTES_TO_WORDS) && defined(WORDS_TO_LE_BYTES)
-    private uint *const msg
+  private uint* const msg
 #else
-    global uint *const msg
+  global uint* const msg
 #endif
 
-) {
+)
+{
 private
   uint permuted[16];
 
 // expecting this loop to be fully unrolled !
 // when target device supports opencl c 2.0 minimum
 //
-// see https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_C.html#specifying-attribute-for-unrolling-loops
+// see
+// https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_C.html#specifying-attribute-for-unrolling-loops
 #if __OPENCL_C_VERSION__ >= CL_VERSION_2_0
   __attribute__((opencl_unroll_hint(16)))
 #endif
-  for (size_t i = 0; i < 16; i++) {
+  for (size_t i = 0; i < 16; i++)
+  {
     permuted[i] = msg[MSG_PERMUTATION[i]];
   }
 
 // expecting this loop to be fully unrolled !
 // when target device supports opencl c 2.0 minimum
 //
-// see https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_C.html#specifying-attribute-for-unrolling-loops
+// see
+// https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_C.html#specifying-attribute-for-unrolling-loops
 #if __OPENCL_C_VERSION__ >= CL_VERSION_2_0
   __attribute__((opencl_unroll_hint(16)))
 #endif
-  for (size_t i = 0; i < 16; i++) {
+  for (size_t i = 0; i < 16; i++)
+  {
     msg[i] = permuted[i];
   }
 }
@@ -75,15 +81,17 @@ private
 inline
 #endif
 
-void blake3_round(private uint4 *const state,
+  void
+  blake3_round(private uint4* const state,
 
 #if defined(LE_BYTES_TO_WORDS) && defined(WORDS_TO_LE_BYTES)
-                         private const uint *msg
+               private const uint* msg
 #else
-                         global const uint *msg
+             global const uint* msg
 #endif
 
-) {
+  )
+{
   const uint4 mx = (uint4)(msg[0], msg[2], msg[4], msg[6]);
   const uint4 my = (uint4)(msg[1], msg[3], msg[5], msg[7]);
   const uint4 mz = (uint4)(msg[8], msg[10], msg[12], msg[14]);
@@ -140,29 +148,35 @@ void blake3_round(private uint4 *const state,
 //
 // So there is only one chunk with only one block inside itself, which is both
 // CHUNK_START, CHUNK_END and ROOT
-void compress(
+void
+compress(
 
 #if defined(LE_BYTES_TO_WORDS) && defined(WORDS_TO_LE_BYTES)
-    private uint *const msg,
+  private uint* const msg,
 #else
-    global uint *const msg,
+  global uint* const msg,
 #endif
 
-    ulong counter, uint block_len, uint flags,
+  ulong counter,
+  uint block_len,
+  uint flags,
 
 #if defined(LE_BYTES_TO_WORDS) && defined(WORDS_TO_LE_BYTES)
-    private uint *const out_cv
+  private uint* const out_cv
 #else
-    global uint *const out_cv
+  global uint* const out_cv
 #endif
 
-) {
+)
+{
 private
-  uint4 state[4] = {(uint4)(IV[0], IV[1], IV[2], IV[3]),
-                    (uint4)(IV[4], IV[5], IV[6], IV[7]),
-                    (uint4)(IV[0], IV[1], IV[2], IV[3]),
-                    (uint4)((uint)(counter & 0xffffffff), (uint)(counter >> 32),
-                            block_len, flags)};
+  uint4 state[4] = { (uint4)(IV[0], IV[1], IV[2], IV[3]),
+                     (uint4)(IV[4], IV[5], IV[6], IV[7]),
+                     (uint4)(IV[0], IV[1], IV[2], IV[3]),
+                     (uint4)((uint)(counter & 0xffffffff),
+                             (uint)(counter >> 32),
+                             block_len,
+                             flags) };
 
   // round 1
   blake3_round(state, msg);
@@ -211,17 +225,20 @@ private
 //
 // Inpired from
 // https://doc.rust-lang.org/std/primitive.u32.html#method.from_le_bytes
-void words_from_le_bytes(global const uchar *input,
-                         private uint *const msg_words) {
+void
+words_from_le_bytes(global const uchar* input, private uint* const msg_words)
+{
 
 // partially unroll following loop
 // when target device supports opencl c 2.0 minimum
 //
-// see https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_C.html#specifying-attribute-for-unrolling-loops
+// see
+// https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_C.html#specifying-attribute-for-unrolling-loops
 #if __OPENCL_C_VERSION__ >= CL_VERSION_2_0
   __attribute__((opencl_unroll_hint(8)))
 #endif
-  for (size_t i = 0; i < 16; i++) { // loop should be partially unrolled !
+  for (size_t i = 0; i < 16; i++)
+  { // loop should be partially unrolled !
     *(msg_words + i) = ((uint) * (input + i * 4 + 3) << 24) |
                        ((uint) * (input + i * 4 + 2) << 16) |
                        ((uint) * (input + i * 4 + 1) << 8) |
@@ -234,17 +251,20 @@ void words_from_le_bytes(global const uchar *input,
 //
 // Inspired from Rust's
 // https://doc.rust-lang.org/std/primitive.u32.html#method.to_le_bytes
-void words_to_le_bytes(private const uint *msg_words,
-                       global uchar *const output) {
+void
+words_to_le_bytes(private const uint* msg_words, global uchar* const output)
+{
 
 // fully parallelize following loop
 // when target device supports opencl c 2.0 minimum
 //
-// see https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_C.html#specifying-attribute-for-unrolling-loops
+// see
+// https://www.khronos.org/registry/OpenCL/specs/3.0-unified/html/OpenCL_C.html#specifying-attribute-for-unrolling-loops
 #if __OPENCL_C_VERSION__ >= CL_VERSION_2_0
   __attribute__((opencl_unroll_hint(8)))
 #endif
-  for (size_t i = 0; i < 8; i++) {
+  for (size_t i = 0; i < 8; i++)
+  {
     const uint num = *(msg_words + i);
 
     *(output + i * 4 + 0) = (uchar)(num >> 0) & 0xff;
@@ -275,16 +295,19 @@ inline
 
 #endif
 
-    void
-    hash(
+  void
+  hash(
 
 #if defined(LE_BYTES_TO_WORDS) && defined(WORDS_TO_LE_BYTES)
-        global const uchar *input, global uchar *const output
+    global const uchar* input,
+    global uchar* const output
 #else
-        global uint *const input, global uint *const output
+    global uint* const input,
+    global uint* const output
 #endif
 
-    ) {
+  )
+{
 
 #if defined(LE_BYTES_TO_WORDS) && defined(WORDS_TO_LE_BYTES)
 private
@@ -316,10 +339,12 @@ private
 // alignment requirements of accelerator device !
 #if !(defined(LE_BYTES_TO_WORDS) && defined(WORDS_TO_LE_BYTES))
 
-kernel void merklize(global uint *const restrict input,
-                     constant size_t *restrict i_offset,
-                     global uint *const restrict output,
-                     constant size_t *restrict o_offset) {
+kernel void
+merklize(global uint* const restrict input,
+         constant size_t* restrict i_offset,
+         global uint* const restrict output,
+         constant size_t* restrict o_offset)
+{
 private
   const size_t idx = get_global_id(0);
 

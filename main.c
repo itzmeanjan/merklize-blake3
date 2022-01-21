@@ -66,41 +66,43 @@ main(int argc, char** argv)
   // Note following three programs, use different compilation flags
   // resulting into different kernels in preprocessed source code
 
-  cl_program prgm_0;
-  status = build_kernel(ctx, dev_id, "kernel.cl", ocl_kernel_flag_0, &prgm_0);
+  cl_program *prgm_0 = (cl_program *)malloc(sizeof(cl_program));
+  status = build_kernel(ctx, dev_id, "kernel.cl", ocl_kernel_flag_0, prgm_0);
   if (status != CL_SUCCESS) {
     printf("failed to compile kernel !\n");
 
-    show_build_log(dev_id, prgm_0);
+    show_build_log(dev_id, *prgm_0);
     return EXIT_FAILURE;
   }
 
-  cl_program prgm_1;
-  status = build_kernel(ctx, dev_id, "kernel.cl", ocl_kernel_flag_1, &prgm_1);
+  cl_program *prgm_1 = (cl_program *)malloc(sizeof(cl_program));
+
+  status = build_kernel(ctx, dev_id, "kernel.cl", ocl_kernel_flag_1, prgm_1);
   if (status != CL_SUCCESS) {
     printf("failed to compile kernel !\n");
 
-    show_build_log(dev_id, prgm_1);
+    show_build_log(dev_id, *prgm_1);
     return EXIT_FAILURE;
   }
 
-  cl_program prgm_2;
-  status = build_kernel(ctx, dev_id, "kernel.cl", ocl_kernel_flag_2, &prgm_2);
+  cl_program *prgm_2 = (cl_program *)malloc(sizeof(cl_program));
+
+  status = build_kernel(ctx, dev_id, "kernel.cl", ocl_kernel_flag_2, prgm_2);
   if (status != CL_SUCCESS) {
     printf("failed to compile kernel !\n");
 
-    show_build_log(dev_id, prgm_2);
+    show_build_log(dev_id, *prgm_2);
     return EXIT_FAILURE;
   }
 
-  cl_kernel krnl_0 = clCreateKernel(prgm_0, "hash", &status);
+  cl_kernel krnl_0 = clCreateKernel(*prgm_0, "hash", &status);
   show_message_and_exit(status, "failed to create `hash` kernel !\n");
 
-  cl_kernel krnl_1 = clCreateKernel(prgm_1, "hash", &status);
+  cl_kernel krnl_1 = clCreateKernel(*prgm_1, "hash", &status);
   show_message_and_exit(status, "failed to create `hash` kernel !\n");
 
   // kernel to be used for benchmarking
-  cl_kernel krnl_2 = clCreateKernel(prgm_2, "merklize", &status);
+  cl_kernel krnl_2 = clCreateKernel(*prgm_2, "merklize", &status);
   show_message_and_exit(status, "failed to create `merklize` kernel !\n");
 
   status = test_hash_0(ctx, c_queue, krnl_0);
@@ -126,15 +128,18 @@ main(int argc, char** argv)
   clReleaseKernel(krnl_0);
   clReleaseKernel(krnl_1);
   clReleaseKernel(krnl_2);
-  clReleaseProgram(prgm_0);
-  clReleaseProgram(prgm_1);
-  clReleaseProgram(prgm_2);
+  clReleaseProgram(*prgm_0);
+  clReleaseProgram(*prgm_1);
+  clReleaseProgram(*prgm_2);
   clReleaseCommandQueue(c_queue);
   clReleaseContext(ctx);
   clReleaseDevice(dev_id);
 
   // release host memory
   free(dev_name);
+  free(prgm_0);
+  free(prgm_1);
+  free(prgm_2);
 
   return EXIT_SUCCESS;
 }

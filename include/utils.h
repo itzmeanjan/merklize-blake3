@@ -118,9 +118,13 @@ build_kernel_from_source(cl_context ctx,
 
   cl_program prgm_ = clCreateProgramWithSource(
     ctx, 1, (const char**)&kernel_src, &size, &status);
+
+  // first set return value
+  *prgm = prgm_;
+
+  // then check whether program object creation failed or not
   check_for_error_and_return(status);
 
-  *prgm = prgm_;
   free(kernel_src);
 
   status = clBuildProgram(*prgm, 1, &dev_id, flags, NULL, NULL);
@@ -312,10 +316,12 @@ build_kernel_from_il(cl_context ctx,
   // prepare opencl program object from spirv
   cl_program prgm_ =
     clCreateProgramWithIL(ctx, (const void*)il_src, il_size, &status);
-  check_for_error_and_return(status);
 
   // set return pointer value
   *prgm = prgm_;
+
+  // now check whether program object creation failed or not
+  check_for_error_and_return(status);
 
   // release resources
   free(il_src);

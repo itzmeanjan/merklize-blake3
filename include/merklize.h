@@ -18,7 +18,7 @@ merklize(cl_context ctx,
          size_t i_size, // in bytes
          size_t leaf_count,
          cl_uchar* const output,
-         size_t o_size,
+         size_t o_size, // in bytes
          size_t wg_size,
          cl_ulong* const ts)
 {
@@ -46,6 +46,11 @@ merklize(cl_context ctx,
   assert((leaf_count >> 1) % wg_size == 0);
 
   cl_int status;
+
+  // notice they are initialized !
+  cl_ulong exec_tm = 0; // total kernel execution time
+  cl_ulong h2d_tm = 0;  // total time spent in moving data from host to device
+  cl_ulong d2h_tm = 0;  // total time spent in moving data to host from device
 
   // converting 4 contiguous little endian bytes to `cl_uint`
   const size_t i_buf_elm_cnt = i_size >> 2;
@@ -222,18 +227,53 @@ merklize(cl_context ctx,
   // converted to similar representation
   words_to_le_bytes(itmd_buf_ptr, itmd_buf_elm_cnt, output, o_size);
 
-  // sum of execution time of kernels with
-  // nanosecond level of granularity
-  cl_ulong ts_ = 0;
+  // just a temporary variable for holding a specific opencl command execution
+  // time
+  cl_ulong tmp;
 
+  // sum of execution time of kernels with nanosecond level of granularity
   for (size_t i = 0; i < rounds + 1; i++) {
-    cl_ulong tmp = 0;
+    tmp = 0;
     status = time_event(*(round_evts + i), &tmp);
 
-    ts_ += tmp;
+    exec_tm += tmp;
   }
 
-  *ts = ts_;
+  // calculating sum of time ( in nanosecond level granularity ) spent
+  // transferring data from host to device
+  tmp = 0;
+  status = time_event(evt_0, &tmp); // input leaf nodes transfer cost
+  h2d_tm += tmp;
+
+  tmp = 0;
+  status = time_event(evt_1, &tmp); // constant denoting buffer offset tx cost
+  h2d_tm += tmp;
+
+  tmp = 0;
+  status = time_event(evt_2, &tmp); // constant denoting buffer offset tx cost
+  h2d_tm += tmp;
+
+  for (size_t i = 0; i < rounds << 1; i++) {
+    cl_ulong tmp = 0;
+    // during multiple rounds of kernel dispatch
+    // constants needs to be set for denoting offset into
+    // buffer from where input can be read or
+    // output can be written to
+    status = time_event(*(tmp_evts + i), &tmp);
+
+    h2d_tm += tmp;
+  }
+
+  // calculating total device to host data transfer cost
+  //
+  // this is the only time when device to host data transfer is required !
+  tmp = 0;
+  status = time_event(evt_4, &tmp); // intermediate node tx cost
+  d2h_tm += tmp;
+
+  *(ts + 0) = exec_tm; // sum of kernel execution times
+  *(ts + 1) = h2d_tm;  // sum of host to device data tx time
+  *(ts + 2) = d2h_tm;  // sum of device to host data tx time
 
   // release all opencl resources acquired during course of execution of this
   // function

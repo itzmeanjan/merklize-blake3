@@ -153,7 +153,9 @@ main(int argc, char** argv)
   printf("\npassed blake3 hash test !\n");
   printf("\nBenchmarking Binary Merklization using BLAKE3\n\n");
 
-  const size_t wg_size = 1 << 5;
+  size_t wg_size = 0;
+  preferred_work_group_size_multiple(krnl_2, dev_id, &wg_size);
+
   const size_t itr_cnt = 1 << 3;
 
   for (size_t i = 20; i <= 25; i++) {

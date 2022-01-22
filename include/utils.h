@@ -331,3 +331,30 @@ build_kernel_from_il(cl_context ctx,
 
   return status;
 }
+
+// Looks up what's preferred work group size for this device and
+// kernel combination, which will be returned by setting value
+// pointed to by `size` ( last parameter )
+//
+// This will be used for deciding what's best possible work group
+// size in runtime
+cl_int
+preferred_work_group_size_multiple(cl_kernel krnl,
+                                   cl_device_id dev_id,
+                                   size_t* const size)
+{
+  cl_int status;
+
+  size_t size_ = 0;
+  status =
+    clGetKernelWorkGroupInfo(krnl,
+                             dev_id,
+                             CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE,
+                             sizeof(size_t),
+                             &size_,
+                             NULL);
+  check_for_error_and_return(status);
+
+  *size = size_;
+  return CL_SUCCESS;
+}

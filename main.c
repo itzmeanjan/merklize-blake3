@@ -11,14 +11,19 @@
   }
 
 // Executes same kernel N -times with same input configuration, finding out
-// average execution time in nanosecond level granularity
-#define avg_bench_time(itr_cnt)                                                \
+// average execution time in nanosecond level granularity, along with average
+// host to device & device to host data transfer cost
+#define avg_bench_time(itr_cnt, ts)                                            \
   for (size_t i = 0; i < itr_cnt; i++) {                                       \
-    cl_ulong ts_ = 0;                                                          \
-    status = bench_merklize(ctx, c_queue, krnl_2, leaf_count, wg_size, &ts_);  \
-    ts += ts_;                                                                 \
+    cl_ulong* ts_ = (cl_ulong*)malloc(sizeof(cl_ulong) * 3);                   \
+    status = bench_merklize(ctx, c_queue, krnl_2, leaf_count, wg_size, ts_);   \
+    *(ts + 0) += *(ts_ + 0);                                                   \
+    *(ts + 1) += *(ts_ + 1);                                                   \
+    *(ts + 2) += *(ts_ + 2);                                                   \
   }                                                                            \
-  ts /= itr_cnt;
+  *(ts + 0) /= itr_cnt;                                                        \
+  *(ts + 1) /= itr_cnt;                                                        \
+  *(ts + 2) /= itr_cnt;
 
 #define STR_(x) #x
 #define STR(x) STR_(x)
@@ -154,11 +159,26 @@ main(int argc, char** argv)
   for (size_t i = 20; i <= 25; i++) {
     size_t leaf_count = 1 << i;
 
-    cl_ulong ts = 0;
-    avg_bench_time(itr_cnt);
+    // allocate enough space so that following three kinds of time ( in nano
+    // second level granularity ) can be stored after completion of merklization
+    //
+    // 0. kernel execution time
+    // 1. host to device data tx time
+    // 2. device to host data tx time
+    cl_ulong* ts = (cl_ulong*)malloc(sizeof(cl_ulong) * 3);
+    memset(ts, 0, sizeof(cl_ulong) * 3); // just to be safe !
+
+    avg_bench_time(itr_cnt, ts);
 
     printf(
-      "merklize\t\t2 ^ %2zu leaves\t\tin %16.4lf ms\n", i, (double)ts * 1e-6);
+      "merklized 2 ^ %2zu leaves in %16.4lf ms\t\twith host to device data tx "
+      "in %16.4lf ms\t\twhile device to host data tx took %16.4lf ms\n",
+      i,
+      (double)*(ts + 0) * 1e-6,
+      (double)*(ts + 1) * 1e-6,
+      (double)*(ts + 2) * 1e-6);
+
+    free(ts);
   }
 
   // release all opencl resources acquired

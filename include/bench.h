@@ -4,7 +4,15 @@
 // Benchmarks execution of `merklize` kernel on accelerator, with given input
 // size & work-group size for ndrange kernel dispatch
 //
-// Excution time is in nanosecond level granularity
+// When everything goes as expected, this function shall set last parameter `ts`
+// with three values
+//
+// *(ts + 0) => sum of kernel execution time          |           compute time
+// *(ts + 1) => sum of host to device tx time         |           io time
+// *(ts + 2) => sum of device to host tx time         |           io time
+//
+// So ensure that the pointer passed as `ts`, points to memory which has
+// enough space allocated to store three `cl_ulong`s
 cl_int
 bench_merklize(cl_context ctx,
                cl_command_queue cq,

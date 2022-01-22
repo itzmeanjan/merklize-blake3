@@ -78,9 +78,9 @@ I suggest you go through code, for getting a sense of how to use this implementa
 
 ## Benchmark(s)
 
-For benchmarking OpenCL accelerated Binary Merklization implementation using 2-to-1 BLAKE3 hashing, I set up random input byte array of size {32 MB, 64 MB, ... 1GB}, which are interpreted as contiguous blocks of 32 little endian bytes, making {2 ^ 20, 2 ^ 21, ... 2 ^ 25} -many leaf nodes of Binary Merkle Tree. Now, with multiple kernel dispatch rounds all (N - 1) -many intermediate nodes of Binary Merkle Tree with N -many leaf nodes are computed, which are then interpreted as little endian bytes making `cl_uint` -> `cl_uchar[4]`. In following tables, time column denotes how long does it take to complete execution of all kernels which are dispatched in multiple rounds during Binary Merklization.
+For benchmarking OpenCL accelerated Binary Merklization implementation using 2-to-1 BLAKE3 hashing, I set up random input byte array of size {32 MB, 64 MB, ... 1GB}, which are interpreted as contiguous blocks of 32 little endian bytes, making {2 ^ 20, 2 ^ 21, ... 2 ^ 25} -many leaf nodes of Binary Merkle Tree. Now, with multiple kernel dispatch rounds all (N - 1) -many intermediate nodes of Binary Merkle Tree with N -many leaf nodes are computed, which are then interpreted as little endian bytes making `cl_uint` -> `cl_uchar[4]`.
 
-> Note, following time column don't include host to device or device to host data transfer cost.
+In following results, I show how much time was spent on executing kernels ( because multiple rounds of them are dispatched ), how much time spent on transferring input bytes to device & also how long does it take to transfer back intermediate node bytes from device to host, all seperately. Their real life execution may overlap, because data dependency graph allows that & I've explicitly enabled **OUT_OF_ORDER** execution of commands.
 
 Command used for running benchmark
 
@@ -94,7 +94,7 @@ make    # build executable, with JIT compiling kernel
 Note, it's possible to AOT compile kernel to **I**ntermediate **R**epresentation language ( read spirv ), using following command
 
 ```bash
-make aot
+make aot && ./run
 ```
 
 As effect of successful execution of above command, 6 new IR files should be created.

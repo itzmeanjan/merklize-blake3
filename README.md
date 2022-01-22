@@ -125,12 +125,12 @@ passed blake3 hash test !
 
 Benchmarking Binary Merklization using BLAKE3
 
-merklize                2 ^ 20 leaves           in           3.7568 ms
-merklize                2 ^ 21 leaves           in           7.2783 ms
-merklize                2 ^ 22 leaves           in          14.2994 ms
-merklize                2 ^ 23 leaves           in          26.7212 ms
-merklize                2 ^ 24 leaves           in          50.9345 ms
-merklize                2 ^ 25 leaves           in         101.2877 ms
+merklized 2 ^ 20 leaves in           3.7582 ms          with host to device data tx in           5.9588 ms              while device to host data tx took          25.7536 ms
+merklized 2 ^ 21 leaves in           7.2841 ms          with host to device data tx in          12.4451 ms              while device to host data tx took          52.9835 ms
+merklized 2 ^ 22 leaves in          14.2924 ms          with host to device data tx in          19.1883 ms              while device to host data tx took         102.1858 ms
+merklized 2 ^ 23 leaves in          28.2952 ms          with host to device data tx in          35.7116 ms              while device to host data tx took         201.9709 ms
+merklized 2 ^ 24 leaves in          52.5327 ms          with host to device data tx in          71.5775 ms              while device to host data tx took         405.8741 ms
+merklized 2 ^ 25 leaves in         100.6062 ms          with host to device data tx in         143.8628 ms              while device to host data tx took         809.7079 ms
 ```
 
 ## On Intel CPU(s)
@@ -150,12 +150,12 @@ passed blake3 hash test !
 
 Benchmarking Binary Merklization using BLAKE3
 
-merklize                2 ^ 20 leaves           in          39.5624 ms
-merklize                2 ^ 21 leaves           in          38.9113 ms
-merklize                2 ^ 22 leaves           in          48.4649 ms
-merklize                2 ^ 23 leaves           in          73.8763 ms
-merklize                2 ^ 24 leaves           in         117.5491 ms
-merklize                2 ^ 25 leaves           in         205.1310 ms
+merklized 2 ^ 20 leaves in          59.3219 ms          with host to device data tx in           5.3638 ms              while device to host data tx took           3.4559 ms
+merklized 2 ^ 21 leaves in          86.8682 ms          with host to device data tx in           9.6732 ms              while device to host data tx took           6.1324 ms
+merklized 2 ^ 22 leaves in          50.9794 ms          with host to device data tx in          22.8543 ms              while device to host data tx took           5.5853 ms
+merklized 2 ^ 23 leaves in          70.0997 ms          with host to device data tx in          33.7137 ms              while device to host data tx took          10.5920 ms
+merklized 2 ^ 24 leaves in          98.0322 ms          with host to device data tx in          45.2110 ms              while device to host data tx took          20.6102 ms
+merklized 2 ^ 25 leaves in         175.9160 ms          with host to device data tx in          64.6548 ms              while device to host data tx took          40.7421 ms
 ```
 
 ---
@@ -175,12 +175,12 @@ passed blake3 hash test !
 
 Benchmarking Binary Merklization using BLAKE3
 
-merklize                2 ^ 20 leaves           in          19.1502 ms
-merklize                2 ^ 21 leaves           in          26.7991 ms
-merklize                2 ^ 22 leaves           in          38.9452 ms
-merklize                2 ^ 23 leaves           in          66.1401 ms
-merklize                2 ^ 24 leaves           in         131.7589 ms
-merklize                2 ^ 25 leaves           in         271.2020 ms
+merklized 2 ^ 20 leaves in          19.3894 ms          with host to device data tx in           3.5966 ms              while device to host data tx took           2.7474 ms
+merklized 2 ^ 21 leaves in          28.1566 ms          with host to device data tx in           6.8970 ms              while device to host data tx took           5.5447 ms
+merklized 2 ^ 22 leaves in          40.1784 ms          with host to device data tx in          14.3582 ms              while device to host data tx took          11.0112 ms
+merklized 2 ^ 23 leaves in          68.7388 ms          with host to device data tx in          25.1962 ms              while device to host data tx took          21.8632 ms
+merklized 2 ^ 24 leaves in         134.6519 ms          with host to device data tx in          46.9249 ms              while device to host data tx took          43.4311 ms
+merklized 2 ^ 25 leaves in         270.3394 ms          with host to device data tx in          87.3723 ms              while device to host data tx took          84.2431 ms
 ```
 
 ---
@@ -200,12 +200,12 @@ passed blake3 hash test !
 
 Benchmarking Binary Merklization using BLAKE3
 
-merklize                2 ^ 20 leaves           in          23.0606 ms
-merklize                2 ^ 21 leaves           in          33.2353 ms
-merklize                2 ^ 22 leaves           in          47.6613 ms
-merklize                2 ^ 23 leaves           in          87.2088 ms
-merklize                2 ^ 24 leaves           in         161.0918 ms
-merklize                2 ^ 25 leaves           in         301.2635 ms
+merklized 2 ^ 20 leaves in          23.2566 ms          with host to device data tx in           4.6335 ms              while device to host data tx took           2.3862 ms
+merklized 2 ^ 21 leaves in          32.3493 ms          with host to device data tx in           8.9893 ms              while device to host data tx took           4.0934 ms
+merklized 2 ^ 22 leaves in          48.7371 ms          with host to device data tx in          16.6954 ms              while device to host data tx took           7.9074 ms
+merklized 2 ^ 23 leaves in          83.0458 ms          with host to device data tx in          27.9030 ms              while device to host data tx took          15.5969 ms
+merklized 2 ^ 24 leaves in         156.7341 ms          with host to device data tx in          44.2649 ms              while device to host data tx took          31.1593 ms
+merklized 2 ^ 25 leaves in         310.1746 ms          with host to device data tx in          75.0253 ms              while device to host data tx took          62.2082 ms
 ```
 
 ---
@@ -225,12 +225,12 @@ passed blake3 hash test !
 
 Benchmarking Binary Merklization using BLAKE3
 
-merklize                2 ^ 20 leaves           in          14.4223 ms
-merklize                2 ^ 21 leaves           in          34.3838 ms
-merklize                2 ^ 22 leaves           in          93.8188 ms
-merklize                2 ^ 23 leaves           in         125.2276 ms
-merklize                2 ^ 24 leaves           in         227.2035 ms
-merklize                2 ^ 25 leaves           in         467.8344 ms
+merklized 2 ^ 20 leaves in          13.5114 ms          with host to device data tx in          11.7123 ms              while device to host data tx took           2.3868 ms
+merklized 2 ^ 21 leaves in          26.0523 ms          with host to device data tx in           5.3010 ms              while device to host data tx took           4.6691 ms
+merklized 2 ^ 22 leaves in          50.5436 ms          with host to device data tx in           9.8895 ms              while device to host data tx took           9.2759 ms
+merklized 2 ^ 23 leaves in          98.6148 ms          with host to device data tx in          19.0315 ms              while device to host data tx took          18.4084 ms
+merklized 2 ^ 24 leaves in         196.5320 ms          with host to device data tx in          37.5133 ms              while device to host data tx took          36.7274 ms
+merklized 2 ^ 25 leaves in         393.0303 ms          with host to device data tx in          74.4886 ms              while device to host data tx took          72.5261 ms
 ```
 
 ---
@@ -250,12 +250,12 @@ passed blake3 hash test !
 
 Benchmarking Binary Merklization using BLAKE3
 
-merklize                2 ^ 20 leaves           in          63.8715 ms
-merklize                2 ^ 21 leaves           in         123.5039 ms
-merklize                2 ^ 22 leaves           in         239.4590 ms
-merklize                2 ^ 23 leaves           in         543.0369 ms
-merklize                2 ^ 24 leaves           in        1008.3083 ms
-merklize                2 ^ 25 leaves           in        2206.7236 ms
+merklized 2 ^ 20 leaves in          63.8268 ms          with host to device data tx in           9.5565 ms              while device to host data tx took           9.7178 ms
+merklized 2 ^ 21 leaves in         136.0081 ms          with host to device data tx in          18.2696 ms              while device to host data tx took          18.3540 ms
+merklized 2 ^ 22 leaves in         263.3239 ms          with host to device data tx in          36.0957 ms              while device to host data tx took          36.8454 ms
+merklized 2 ^ 23 leaves in         541.0337 ms          with host to device data tx in          73.5482 ms              while device to host data tx took          75.0540 ms
+merklized 2 ^ 24 leaves in        1092.4356 ms          with host to device data tx in         146.4404 ms              while device to host data tx took         148.4563 ms
+merklized 2 ^ 25 leaves in        2129.8265 ms          with host to device data tx in         292.8271 ms              while device to host data tx took         305.3257 ms
 ```
 
 ## On Intel GPU(s)
@@ -267,12 +267,12 @@ passed blake3 hash test !
 
 Benchmarking Binary Merklization using BLAKE3
 
-merklize                2 ^ 20 leaves           in          29.4210 ms
-merklize                2 ^ 21 leaves           in          39.0622 ms
-merklize                2 ^ 22 leaves           in          34.0255 ms
-merklize                2 ^ 23 leaves           in          67.9463 ms
-merklize                2 ^ 24 leaves           in         135.8051 ms
-merklize                2 ^ 25 leaves           in         271.5425 ms
+merklized 2 ^ 20 leaves in           9.1614 ms          with host to device data tx in           8.9756 ms              while device to host data tx took           5.9159 ms
+merklized 2 ^ 21 leaves in          18.1686 ms          with host to device data tx in          17.8592 ms              while device to host data tx took          11.8276 ms
+merklized 2 ^ 22 leaves in          36.1911 ms          with host to device data tx in          35.6105 ms              while device to host data tx took          23.6581 ms
+merklized 2 ^ 23 leaves in          72.2722 ms          with host to device data tx in          71.1157 ms              while device to host data tx took          47.3124 ms
+merklized 2 ^ 24 leaves in         144.4273 ms          with host to device data tx in         142.0968 ms              while device to host data tx took          94.6267 ms
+merklized 2 ^ 25 leaves in         288.7912 ms          with host to device data tx in         284.0003 ms              while device to host data tx took         189.2569 ms
 ```
 
 ---
@@ -284,10 +284,10 @@ passed blake3 hash test !
 
 Benchmarking Binary Merklization using BLAKE3
 
-merklize                2 ^ 20 leaves           in          17.8799 ms
-merklize                2 ^ 21 leaves           in          35.3276 ms
-merklize                2 ^ 22 leaves           in          70.1749 ms
-merklize                2 ^ 23 leaves           in         139.7336 ms
-merklize                2 ^ 24 leaves           in         278.7808 ms
-merklize                2 ^ 25 leaves           in         556.8201 ms
+merklized 2 ^ 20 leaves in          55.6401 ms          with host to device data tx in           4.1337 ms              while device to host data tx took          11.5352 ms
+merklized 2 ^ 21 leaves in          93.9523 ms          with host to device data tx in           8.1561 ms              while device to host data tx took           4.5567 ms
+merklized 2 ^ 22 leaves in         122.8529 ms          with host to device data tx in          16.5308 ms              while device to host data tx took           7.9646 ms
+merklized 2 ^ 23 leaves in         185.1349 ms          with host to device data tx in          32.7902 ms              while device to host data tx took          15.7615 ms
+merklized 2 ^ 24 leaves in         301.7459 ms          with host to device data tx in          63.4848 ms              while device to host data tx took          31.5628 ms
+merklized 2 ^ 25 leaves in         559.1572 ms          with host to device data tx in         111.6804 ms              while device to host data tx took          61.9394 ms
 ```

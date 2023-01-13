@@ -1,3 +1,5 @@
+> **Warning** I've stopped maintaining this project !
+
 # merklize-blake3
 OpenCL powered Merklization using BLAKE3
 
